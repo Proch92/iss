@@ -2,6 +2,8 @@ bin
 bin/default
 .metadata
 build
+.project
+.settings/
 
 #node
 nodeCode/frontend/node_modules/
@@ -22,9 +24,3 @@ gradle
 docker/
 /.metadata/
 /src-gen/
-
-basicrobot/\.classpath
-
-basicrobot/build_ctxBasicRobot\.gradle
-
-basicrobot/build_ctxRobot\.gradle
