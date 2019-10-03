@@ -1,0 +1,3 @@
+[submodule "iss2020Lab"]
+	path = iss2020Lab
+	url = https://github.com/anatali/iss2020Lab
