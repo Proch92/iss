@@ -8,7 +8,7 @@ Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot
 Event  sonar          : sonar(SONAR, DISTANCE)	 //from sonar in the robot environment   
 
 Context ctxBasicRobot   ip [ host= "localhost"   port= 8020 ] 
- 
+
 QActor basicrobot context ctxBasicRobot { 
 	State s0 initial {
 		//run itunibo.robotVirtual.clientWenvObjTcp.initClientConn( myself )  //ANALYSIS
@@ -18,7 +18,7 @@ QActor basicrobot context ctxBasicRobot {
 	    solve( consult("basicRobotConfig.pl") ) 
  		solve( robot(R, PORT) )  //R = virtual | ... 
   		ifSolved { 
-			println( "USING:${getCurSol(\"R\")},port=${getCurSol(\"PORT\")}")
+			println("USING:${getCurSol(\"R\")},port=${getCurSol(\"PORT\")}")
   			run itunibo.robot.robotSupport.create( myself, @R, @PORT )	//@ is a shortcut
   		} 		
 	}
@@ -26,12 +26,12 @@ QActor basicrobot context ctxBasicRobot {
 	
 	State work{	println ( "robot waiting" ) 		
 	}	
-	Transition t0   
+	Transition t0
 		whenMsg   cmd        -> handleCmd
 		whenEvent sonarRobot -> handleObstacle 
  		 
 	State handleCmd{ 
- 		printCurrentMessage  
+ 		printCurrentMessage
 		onMsg ( cmd : cmd(X) ) { 
 			//run itunibo.robotVirtual.clientWenvObjTcp.sendMsg( payloadArg(0 ))	//ANALYSIS
 			run itunibo.robot.robotSupport.move( payloadArg(0 )   )					//PROJECT
