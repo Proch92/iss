@@ -16,7 +16,7 @@ USAGE:
 plugins {
     id 'java'
     id 'eclipse'
-    //id 'application'
+    id 'application'
     id 'org.jetbrains.kotlin.jvm' version '1.3.21'
 }
 
@@ -27,7 +27,7 @@ sourceCompatibility = 1.8
 repositories {
     mavenCentral()
     flatDir { //grazie Mattia Piretti
-       dirs '/C:/Didattica2018Work/iss2019Lab/libs'	//full path
+       dirs '../iss2020Lab/it.unibo.issLabStart/resources'	//full path
    }
 }
 
@@ -64,9 +64,9 @@ dependencies {
     compile name: 'unibonoawtsupports'
 
 	//BLS
-	compile name: 'it.unibo.bls19Local-1.0'
+	//compile name: 'it.unibo.bls19Local-1.0'
 	//RADAR
-	compile name: 'radarPojo'
+	//compile name: 'radarPojo'
 	//RADAR GUI
 	// https://mvnrepository.com/artifact/org.pushingpixels/trident
 	compile group: 'org.pushingpixels', name: 'trident', version: '1.3'
@@ -88,10 +88,10 @@ compileTestKotlin {
 
 sourceSets {
     main.java.srcDirs += 'src'
-    //main.java.srcDirs += 'resources'
+    main.java.srcDirs += '../iss2020Lab/it.unibo.robot2020/resources'
 }
-/*
-mainClassName = 'it.unibo.TODOKt'
+
+mainClassName = 'it.unibo.ctxMind.MainCtxMindKt'
 
 jar {
     println("executing jar")
@@ -100,4 +100,3 @@ jar {
         attributes 'Main-Class': "$mainClassName"
     }
 }
-*/
