@@ -1,0 +1,35 @@
+produco un'analisi dei requisiti. Vengono richieste 2 entità fisiche: un robot differenziale e una console. passaggio di comandi async attraverso un canale
+produzione di testplan. lancio di comandi e feedback visivo
+definisco gli schemi di interazione e struttura
+
+concentrato o distribuito?
+omogenee o eterogenee?
+
+struttura:
+atomica o composta?
+
+interazione:
+chi è che instaura la comunicazione? 
+behaviour della console
+sync o async?
+
+comportamento:
+
+_________________
+
+formalizzare l'analisi dei requisiti producendo un prodotto interpretabile da una macchina.
+
+Obiettivo: definire un modello del sistema derivante dall'analisi dei requisiti (lab1)
+Struttura: il sistema è composto da 2 componenti: Console e Robot (Deriva dai requisiti). Il sistema è distribuito: i due componenti devono girare su nodi computazionali diversiInterazione: La Console emette informazione; il Robot le interpreta. 'The Console must send a set of movement commands to the Robot'. Quando l'utente preme un tasto sulla console, a command taken from the set of movement command is sent to the Robot
+
+_______________________
+
+tipi di test:
+unit testing
+integration testing
+acceptance testing
+-> functional testing : test plan che deriva dai requisiti
+
+Nuovo comando: step
+va avanti per x secondi
+se nel frattempo riceve HALT si deve fermare

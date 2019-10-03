@@ -1,0 +1,33 @@
+/*
+ * 
+ */
+
+System robotmind
+
+Dispatch step	: step(X)  // step
+Dispatch stop	: stop(X)  // step
+
+Context ctxMind	ip [ host= "localhost"   port= 8023 ]
+
+QActor basicrobot context ctxMind {
+	State s0 initial {
+		println("init")
+		solve( consult("basicRobotConfig.pl") ) 
+ 		solve( robot(R, PORT) )  //R = virtual | ... 
+  		ifSolved { 
+			println("USING:${getCurSol(\"R\")},port=${getCurSol(\"PORT\")}")
+  			run itunibo.robot.robotSupport.create( myself, @R, @PORT )	//@ is a shortcut
+  		}
+	}
+	Goto idle
+	
+	State idle {
+		println("idle")
+	}
+	Transition tstep whenMsg step -> sStep
+	
+	State sStep {
+		println("sStep")
+	}
+	
+}
