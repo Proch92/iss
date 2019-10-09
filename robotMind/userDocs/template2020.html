@@ -1,0 +1,295 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <!--
+<link rel="stylesheet" type="text/css" href="../css/issStyle1.css">
+<script type="text/javascript" src="../css/issStyle.js"></script>
+-->
+<style type="text/css">
+<!--
+body
+{
+    margin-left:  30px;
+    margin-right: 30px;
+};
+
+P
+{
+    font-family: Tahoma;
+    font-size: 10pt;
+};
+
+a, a:visited, a:active, a:link, a:hover {
+    text-decoration: underline;
+    color: #545454;
+    background-color: transparent;
+}
+
+a:hover {
+    background-color: #cccccc;
+}
+
+
+hr {
+    clear: both;
+    height: 1px;
+    color: #242424;
+    background-color: transparent;
+}
+
+h1, h2, h3 {
+    color: #242424;
+    clear: left;
+    font: 100% Tahoma, Helvetica, Arial, sans-serif;
+    margin: 10;
+    margin-right: 15px;
+    margin-bottom: 0.5em;
+    padding-top: 0.5em;
+    border-bottom: 1px solid #242424;
+}
+
+h1 {
+    font-size: 150%;
+    background-color: #b2c0ff;
+}
+
+h2 {
+    background-color: #d9fbff;
+    font-size: 110%;
+}
+
+h3 {
+	background-color: #e6ccff;
+    font-size: 80%;
+}
+h4 {
+    background-color: #99ffcc;
+    font-size: 100%;
+	width: 750px;
+}
+#i {
+    color: #ff1010;
+}
+tt{
+	font-family: "Arial";
+    font-size: 80%;
+	color: #006600;
+}
+em{
+	font-family: "Arial";
+    font-size: 80%;
+	font-weight: bold;
+	border-style:solid;
+	border-color: #ccffff;
+    color: #0033cc;
+}
+bc{
+	font-family: "Arial";
+	font-size: 80%;
+	font-weight: bold;
+    color: #990000;
+	background-color: #fcf8c7;
+}
+k{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #990000;
+	 
+}
+ks{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #0000CD	;
+	 
+}
+kc{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #008000	;
+	 
+}
+pre{
+	font-family: "Helvetica";
+	font-size: 60%;
+	background-color: #fcf8c7;
+	border: 1px solid blue;
+}
+m{
+	font-family: "Helvetica";
+	line-height: 100%;
+ 	font-size: 75%;
+}
+div.body{
+	width: 800px;
+    font-size: 18px;
+}    
+div.req{
+	background-color: #d9ffb3;
+    font-size: 18px;
+	width: 700px;
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}       
+div.remark{
+	background-color: #FFFC33;     
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}  
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}         
+    
+  -->
+</style>
+    
+<head>
+   
+<title>Lab ...</title></head>
+    
+<body>
+<div id="top">
+<h1>81614 - LABORATORIO DI SISTEMI SOFTWARE <font size="5"></font> </h1>
+</div>  
+
+<div class="body"> 
+<h2>Introduction</h2>
+ 
+<center>
+<table style="width:100%" border="1">
+<tr>
+<td>comment 1</td>
+<td>comment 2</td>
+</tr>
+</table>
+</center> 	
+
+<h2>Requirements</h2>
+<div class="req">
+    Design and build a software system (<em>basicrobot</em>) that allows to move the <em>virtual robot</em> introduced in
+    <a href="http://htmlpreview.github.com/?https://github.com/anatali/iss2020Lab/blob/master/it.unibo.robot2020/userDocs/LabVirtualRobot.html" target="web">
+    LabVirtualRobot</a> according to the set of <i>basic movement-commands</i> <k>w | s | h | a | d</k>. The <em>basicrobot</em> must be able to 
+    receive the commands in textual form, sent to it via Internet.
+
+    <br>
+    <br>
+    <br>
+
+    Extend the software system <em>RobCmd</em> so that the <em>Robot</em> is also able to execute the following <i>movement-command</i>
+    (always sent by the <em>Console</em>):
+    <ul>
+        <li> <k>step</k>: the robot moves forward for a prefixed time (e.g. <tt>2</tt> secs) and then stops.</li>  
+    </ul>
+    Moreover, the robot must be always able to react 'immediately'  to the <k>h</k> command.
+</div>
+
+<h2>Requirement analysis</h2>
+<pre>
+/*
+ * This is a textual representation a model expressed using the Qak language (metamodel)
+ * that describes the structure, interaction, behaviour of the software system
+ * according to the requirements
+ */
+
+System <ks>basicrobot</ks>
+
+Dispatch cmd          : cmd(X) // X = w | s | a | h | step
+
+Context ctxBasicRobot   ip [ host= "localhost"   port= 8020 ]
+
+QActor <ks>basicrobot</ks> context ctxBasicRobot {
+    State s0 initial {
+        println("init")
+    }
+    Goto work
+    
+    State work{ println ( "robot waiting" )
+    }   
+    Transition t0
+        whenMsg   cmd        -> handleCmd
+
+    State handleCmd{ 
+        printCurrentMessage
+        onMsg ( cmd : cmd(X) ) { 
+            println("send ${payloadArg(0)} to virtual robot")
+        }
+    }
+    Goto work
+}
+
+</pre>
+
+<h2>Problem analysis</h2>
+<pre>
+/*
+ * 
+ */
+
+System robotmind
+
+Dispatch step   : step(X)  // step
+Dispatch stop   : stop(X)  // stop
+Dispatch cmd    : cmd(X)   // aswdh
+
+Context ctxMind ip [ host= "localhost"   port= 8023 ]
+ExternalContext ctxBasicRobot  ip [ host= "localhost"   port= 8020 ]
+
+ExternalQActor <ks>basicrobot</ks> context ctxBasicRobot 
+
+QActor <ks>basicrobot</ks> context ctxMind {
+    State s0 initial {
+        println("init")
+    }
+    Goto idle
+    
+    State idle {
+        println("idle")
+    }
+    Transition tstep whenMsg <k>step -> sStep</k>
+    Transition tstep whenMsg <k>stop -> sStop</k>
+    Transition tstep whenMsg <k>cmd -> sHandleCmd</k>
+    
+    <k>State sStep</k> {
+        println("sStep")
+        forward basicrobot -m cmd : cmd(w)
+        delay 1000
+        forward basicrobot -m cmd : cmd(h)
+    }
+    Goto idle
+
+    <k>State sStop</k> {
+        println("sStop")
+        forward basicrobot -m cmd : cmd(h)
+    }
+    Goto idle
+
+    <k>State sHandleCmd</k> {
+        println("sHandleCmd")
+        onMsg (cmd : cmd(X)) {
+            forward basicrobot -m cmd : cmd(X)
+        }
+    }
+    Goto idle
+    
+}
+</pre>
+
+<h2>Test plans</h2>
+
+<h2>Project</h2>
+
+<h2>Testing</h2>
+
+<h2>Deployment</h2>
+
+<h2>Maintenance</h2>
+	      	
+<br/><br/>
+</div>
+
+<div style="background-color:rgba(86, 56, 253, 0.9); width:100%;text-align:center;font-size:small;color:white">
+By ...  
+</div> 
+</body>
+</html>

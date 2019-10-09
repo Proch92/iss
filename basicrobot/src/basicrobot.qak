@@ -1,5 +1,8 @@
 /*
-*/
+ * This is a textual representation a model expressed using the Qak language (metamodel)
+ * that describes the structure, interaction, behaviour of the software system
+ * according to the requirements
+ */
 
 System basicrobot  
 
@@ -15,12 +18,12 @@ QActor basicrobot context ctxBasicRobot {
  //PROJECT		
 		//run itunibo.robot.robotSupport.create( myself, "virtual", "8999" )  //naive
 // Using the adapter  robotSupport
-	    solve( consult("basicRobotConfig.pl") ) 
- 		solve( robot(R, PORT) )  //R = virtual | ... 
-  		ifSolved { 
+		solve( consult("basicRobotConfig.pl") )
+		solve( robot(R, PORT) )  //R = virtual | ... 
+		ifSolved {
 			println("USING:${getCurSol(\"R\")},port=${getCurSol(\"PORT\")}")
-  			run itunibo.robot.robotSupport.create( myself, @R, @PORT )	//@ is a shortcut
-  		} 		
+			run itunibo.robot.robotSupport.create( myself, @R, @PORT )	//@ is a shortcut
+		}
 	}
 	Goto work
 	
@@ -34,7 +37,7 @@ QActor basicrobot context ctxBasicRobot {
  		printCurrentMessage
 		onMsg ( cmd : cmd(X) ) { 
 			//run itunibo.robotVirtual.clientWenvObjTcp.sendMsg( payloadArg(0 ))	//ANALYSIS
-			run itunibo.robot.robotSupport.move( payloadArg(0 )   )					//PROJECT
+			run itunibo.robot.robotSupport.move(payloadArg(0))						//PROJECT
 		}
  	}
  	Goto work
@@ -42,7 +45,7 @@ QActor basicrobot context ctxBasicRobot {
 	State handleObstacle{
 		printCurrentMessage
 		//run itunibo.robotVirtual.clientWenvObjTcp.sendMsg( "h" )	//ANALYSIS
-		run itunibo.robot.robotSupport.move( "h" )					//PROJECT
+		run itunibo.robot.robotSupport.move("h")					//PROJECT
 	}
 	Goto work
 }
