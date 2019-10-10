@@ -10,7 +10,7 @@ Dispatch cmd          : cmd(X) // X = w | s | a ...
 Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
 Event  sonar          : sonar(SONAR, DISTANCE)	 //from sonar in the robot environment   
 
-Context ctxBasicRobot   ip [ host= "localhost"   port= 8020 ] 
+Context ctxBasicRobot   ip [ host= "10.201.116.57"   port= 8020 ] 
 
 QActor basicrobot context ctxBasicRobot { 
 	State s0 initial {

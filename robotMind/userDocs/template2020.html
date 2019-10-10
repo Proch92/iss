@@ -167,112 +167,25 @@ table, th, td {
 
 <h2>Requirements</h2>
 <div class="req">
-    Design and build a software system (<em>basicrobot</em>) that allows to move the <em>virtual robot</em> introduced in
-    <a href="http://htmlpreview.github.com/?https://github.com/anatali/iss2020Lab/blob/master/it.unibo.robot2020/userDocs/LabVirtualRobot.html" target="web">
-    LabVirtualRobot</a> according to the set of <i>basic movement-commands</i> <k>w | s | h | a | d</k>. The <em>basicrobot</em> must be able to 
-    receive the commands in textual form, sent to it via Internet.
-
-    <br>
-    <br>
-    <br>
-
-    Extend the software system <em>RobCmd</em> so that the <em>Robot</em> is also able to execute the following <i>movement-command</i>
-    (always sent by the <em>Console</em>):
+    Design and build a software system (<em>basicrobot</em>) that is able to receive via Internet commands (represented 
+    in textual form), so that: 
     <ul>
-        <li> <k>step</k>: the robot moves forward for a prefixed time (e.g. <tt>2</tt> secs) and then stops.</li>  
+    <li>the commands <k>w | s | h | a | d</k> move a <i>differential drive robot</i> (<em>robot</em>)  respectively
+    <k>forward | backward | stop | left | right</k>  (<ks>req-cmd</ks>).  </li>
+    <li>the command <k>step</k>  moves the <em>robot</em> forward for a prefixed time (e.g. <tt>2</tt> secs) (<ks>req-step</ks>).</li>
     </ul>
-    Moreover, the robot must be always able to react 'immediately'  to the <k>h</k> command.
+    Moreover, the robot must be always able to react 'immediately' to the <k>stop</k> command, by stopping 
+    any ongoing movement (<ks>req-stop</ks>).
 </div>
 
 <h2>Requirement analysis</h2>
 <pre>
-/*
- * This is a textual representation a model expressed using the Qak language (metamodel)
- * that describes the structure, interaction, behaviour of the software system
- * according to the requirements
- */
-
-System <ks>basicrobot</ks>
-
-Dispatch cmd          : cmd(X) // X = w | s | a | h | step
-
-Context ctxBasicRobot   ip [ host= "localhost"   port= 8020 ]
-
-QActor <ks>basicrobot</ks> context ctxBasicRobot {
-    State s0 initial {
-        println("init")
-    }
-    Goto work
     
-    State work{ println ( "robot waiting" )
-    }   
-    Transition t0
-        whenMsg   cmd        -> handleCmd
-
-    State handleCmd{ 
-        printCurrentMessage
-        onMsg ( cmd : cmd(X) ) { 
-            println("send ${payloadArg(0)} to virtual robot")
-        }
-    }
-    Goto work
-}
-
 </pre>
 
 <h2>Problem analysis</h2>
 <pre>
-/*
- * 
- */
-
-System robotmind
-
-Dispatch step   : step(X)  // step
-Dispatch stop   : stop(X)  // stop
-Dispatch cmd    : cmd(X)   // aswdh
-
-Context ctxMind ip [ host= "localhost"   port= 8023 ]
-ExternalContext ctxBasicRobot  ip [ host= "localhost"   port= 8020 ]
-
-ExternalQActor <ks>basicrobot</ks> context ctxBasicRobot 
-
-QActor <ks>basicrobot</ks> context ctxMind {
-    State s0 initial {
-        println("init")
-    }
-    Goto idle
     
-    State idle {
-        println("idle")
-    }
-    Transition tstep whenMsg <k>step -> sStep</k>
-    Transition tstep whenMsg <k>stop -> sStop</k>
-    Transition tstep whenMsg <k>cmd -> sHandleCmd</k>
-    
-    <k>State sStep</k> {
-        println("sStep")
-        forward basicrobot -m cmd : cmd(w)
-        delay 1000
-        forward basicrobot -m cmd : cmd(h)
-    }
-    Goto idle
-
-    <k>State sStop</k> {
-        println("sStop")
-        forward basicrobot -m cmd : cmd(h)
-    }
-    Goto idle
-
-    <k>State sHandleCmd</k> {
-        println("sHandleCmd")
-        onMsg (cmd : cmd(X)) {
-            forward basicrobot -m cmd : cmd(X)
-        }
-    }
-    Goto idle
-    
-}
 </pre>
 
 <h2>Test plans</h2>

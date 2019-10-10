@@ -6,16 +6,18 @@
 
 System robotmind
 
-Dispatch step	: step(X)  // step
-Dispatch stop	: stop(X)  // stop
-Dispatch cmd 	: cmd(X)   // aswdh
+Dispatch step	: step(T)  // req-step
+Dispatch stop	: stop(X)  // req-stop
+Dispatch cmd 	: cmd(X)   // req-cmd
 
 Context ctxMind	ip [ host= "localhost"   port= 8023 ]
-ExternalContext ctxBasicRobot  ip [ host= "localhost"   port= 8020 ]
+ExternalContext ctxBasicRobot  ip [ host= "10.201.116.57"   port= 8020 ]
 
 ExternalQActor basicrobot context ctxBasicRobot 
 
-QActor basicrobot context ctxMind {
+QActor robotmind context ctxMind {
+	["var StepTime = 0L;"]
+
 	State s0 initial {
 		println("init")
 	}
@@ -24,29 +26,41 @@ QActor basicrobot context ctxMind {
 	State idle {
 		println("idle")
 	}
-	Transition tstep whenMsg step -> sStep
-	Transition tstep whenMsg stop -> sStop
-	Transition tstep whenMsg cmd -> sHandleCmd
-	
-	State sStep {
-		println("sStep")
-		forward basicrobot -m cmd : cmd(w)
-		delay 1000
-		forward basicrobot -m cmd : cmd(h)
-	}
-	Goto idle
+	Transition tWork
+		whenMsg step -> sStep
+		whenMsg cmd -> sHandleCmd
 
-	State sStop {
-		println("sStop")
-		forward basicrobot -m cmd : cmd(h)
-	}
-	Goto idle
-
+	/*
+	 * REQUIREMENT: req-cmd
+	 */
 	State sHandleCmd {
 		println("sHandleCmd")
 		onMsg (cmd : cmd(X)) {
 			forward basicrobot -m cmd : cmd(X)
 		}
+	}
+	Goto idle
+	
+	/*
+	 * REQUIREMENT: req-step
+	 */
+	State sStep {
+		println("sStep")
+		onMsg (step : step(T)){
+			["StepTime = payloadArg(0).toLong()"]
+			forward basicrobot -m cmd : cmd(w)
+		}
+	}
+	Transition tStop
+		whenTimeVar StepTime -> sEndStep
+		whenMsg stop -> sEndStep
+
+	/*
+	 * REQUIREMENT: req-stop
+	 */
+	State sEndStep {
+		println("sEndStep")
+		forward basicrobot -m cmd : cmd(h)
 	}
 	Goto idle
 	
