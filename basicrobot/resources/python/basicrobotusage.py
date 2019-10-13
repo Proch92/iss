@@ -6,14 +6,16 @@
 import socket
 import time
 
-basicRobotPort = 8020
+mindPort = 8023
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-goForwardMsg  = "msg(cmd,dispatch,python,basicrobot,cmd(w),-1)"
-goBackwardMsg = "msg(cmd,dispatch,python,basicrobot,cmd(s),-1)" 
-turnLeftMsg   = "msg(cmd,dispatch,python,basicrobot,cmd(a),1)"  
-turnRightMsg  = "msg(cmd,dispatch,python,basicrobot,cmd(d),1)"  
-haltMsg       = "msg(cmd,dispatch,python,basicrobot,cmd(h),1)"
+goForwardMsg  = "msg(cmd,dispatch,python,robotmind,cmd(w),-1)"
+goBackwardMsg = "msg(cmd,dispatch,python,robotmind,cmd(s),-1)" 
+turnLeftMsg   = "msg(cmd,dispatch,python,robotmind,cmd(a),1)"  
+turnRightMsg  = "msg(cmd,dispatch,python,robotmind,cmd(d),1)"  
+haltMsg       = "msg(cmd,dispatch,python,robotmind,cmd(h),1)"
+stepMsg       = "msg(step,dispatch,python,robotmind,step({}),-1)"
+stopMsg       = "msg(stop,dispatch,python,robotmind,stop(X),-1)"
 
 def connect(port) :
     server_address = ('localhost', port)
@@ -21,19 +23,15 @@ def connect(port) :
     print("CONNECTED WITH basicrobot" , server_address)
 
 def sendDispatch( message ) :
-    print("forward ", message)
+    print("sending ", message)
     msg = message + "\n"
-    byt=msg.encode()    #required in Python3
+    byt=msg.encode()
     sock.send(byt)
 
 def work() :
-    while True:
-        sendDispatch( goBackwardMsg )
-        time.sleep(1)
-        sendDispatch( haltMsg )
-        sendDispatch( goForwardMsg )
-        time.sleep(1)
-        sendDispatch( haltMsg )
+    sendDispatch( stepMsg.format(2000) )
+    time.sleep(1)
+    sendDispatch( stopMsg )
 
 def read() :
     BUFFER_SIZE = 1024
@@ -45,6 +43,6 @@ def terminate() :
     print("BYE")
 
 ###########################################    
-connect(basicRobotPort)
+connect(mindPort)
 work()
 terminate()  
