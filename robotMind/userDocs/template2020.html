@@ -113,6 +113,9 @@ pre{
 	background-color: #fcf8c7;
 	border: 1px solid blue;
 }
+code {
+    font-size: 44% !important;
+}
 m{
 	font-family: "Helvetica";
 	line-height: 100%;
@@ -145,25 +148,16 @@ table, th, td {
 </style>
     
 <head>
-   
-<title>Lab ...</title></head>
+    <title>Lab ...</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/themes/prism-coy.min.css" rel="stylesheet" />
+</head>
     
 <body>
-<div id="top">
+<!--<div id="top">
 <h1>81614 - LABORATORIO DI SISTEMI SOFTWARE <font size="5"></font> </h1>
-</div>  
+</div>-->
 
-<div class="body"> 
-<h2>Introduction</h2>
- 
-<center>
-<table style="width:100%" border="1">
-<tr>
-<td>comment 1</td>
-<td>comment 2</td>
-</tr>
-</table>
-</center> 	
+<div class="body">
 
 <h2>Requirements</h2>
 <div class="req">
@@ -174,35 +168,178 @@ table, th, td {
     <k>forward | backward | stop | left | right</k>  (<ks>req-cmd</ks>).  </li>
     <li>the command <k>step</k>  moves the <em>robot</em> forward for a prefixed time (e.g. <tt>2</tt> secs) (<ks>req-step</ks>).</li>
     </ul>
-    Moreover, the robot must be always able to react 'immediately' to the <k>stop</k> command, by stopping 
-    any ongoing movement (<ks>req-stop</ks>).
+    Moreover, the <em>robot</em> must be always able to react 'immediately' to the <k>stop</k> command, by stopping 
+    any ongoing movement (<ks>req-stop</ks>) .
 </div>
 
 <h2>Requirement analysis</h2>
-<pre>
+An external actor is being placed as a logical representation of the <em>robot</em> entity to keep the model completely technology-independent.
+The implementation is not attached as it is not meaningful in the scope of Requirement Analysis.
+
+<pre><code class="language-java">
+System basicrobot
+
+Dispatch step   : step(T)  // req-step
+Dispatch stop   : stop(X)  // req-stop
+Dispatch cmd    : cmd(X)   // req-cmd
+
+Context ctxBasicRobot   ip [ host= "localhost"   port= 8023 ]
+
+// placeholder mock-up actor logically representing the robot.
+ExternalContext ctxMockRobot  ip [ host= "10.201.116.57"   port= 8020 ]
+ExternalQActor robot context ctxRealRobot
+
+QActor basicrobot context ctxBasicRobot {
+    State s0 initial {
+        println("init")
+    }
+    Goto idle
     
-</pre>
+    State idle {
+        println("idle")
+    }
+    Transition tWork
+        whenMsg step -> sStep
+        whenMsg cmd -> sHandleCmd
+        whenMsg stop -> sStopStep
+
+    // REQUIREMENT: req-cmd
+    State sHandleCmd {
+        println("sHandleCmd")
+        onMsg (cmd : cmd(X)) {
+            forward robot -m cmd : cmd(X)
+        }
+    }
+    Goto idle
+
+    // REQUIREMENT: req-step
+    // req-step problem complexity demands further analysis
+    // not suitable to the Requirement Analysis
+    State sStep {
+        println("sStep")
+        forward robot -m step : step(X)
+    }
+    Goto idle
+
+    // REQUIREMENT: req-stop
+    State sStopStep {
+        println("sStopStep")
+        forward robot -m cmd : cmd(h)
+    }
+    Goto idle
+}
+</code></pre>
 
 <h2>Problem analysis</h2>
-<pre>
+I decided to logically divide the model in two parts: a Mind, responsible for behaviour control, and a Body that acts as a translator from meta-model defined 
+messages to a technology dependent codification.
+<h3>Body - message translator</h3>
+<pre><code class="language-java">
+System basicrobot
+
+Dispatch cmd : cmd(X)
+
+Context ctxBasicRobot   ip [ host= "10.201.116.57"   port= 8020 ]
+
+QActor basicrobot context ctxBasicRobot { 
+    State s0 initial {
+        solve(consult("basicRobotConfig.pl"))
+        solve(robot(R, PORT))
+        ifSolved {
+            println("USING:${getCurSol(\"R\")},port=${getCurSol(\"PORT\")}")
+            run itunibo.robot.robotSupport.create( myself, @R, @PORT )
+        }
+    }
+    Goto idle
     
-</pre>
+    State idle{
+        println("robot idle")
+    }   
+    Transition t0 whenMsg cmd -> handleCmd
 
-<h2>Test plans</h2>
+    State handleCmd{
+        printCurrentMessage
+        onMsg(cmd : cmd(X)) {
+            run itunibo.robot.robotSupport.move(payloadArg(0))
+        }
+    }
+    Goto idle
+}
+</code></pre>
+<h3>Mind</h3>
+The req-step problematic brings an intrinsic proactive behavior. This is solved by expanding the language expressive power, introducing
+a timer that emits an event when time is up. The FSA is then able to <em>react</em> to the event with a state transition.
+<pre><code class="language-java">
+System robotmind
 
-<h2>Project</h2>
+Dispatch step   : step(T)  // req-step
+Dispatch stop   : stop(X)  // req-stop
+Dispatch cmd    : cmd(X)   // req-cmd
 
-<h2>Testing</h2>
+Context ctxMind ip [ host= "localhost"   port= 8023 ]
+ExternalContext ctxBasicRobot  ip [ host= "10.201.116.57"   port= 8020 ]
+
+ExternalQActor basicrobot context ctxBasicRobot 
+
+QActor robotmind context ctxMind {
+    ["var StepTime = 0L;"]
+
+    State s0 initial {
+        println("init")
+    }
+    Goto idle
+    
+    State idle {
+        println("idle")
+    }
+    Transition tWork
+        whenMsg step -> sStep
+        whenMsg cmd -> sHandleCmd
+
+    // REQUIREMENT: req-cmd
+    State sHandleCmd {
+        println("sHandleCmd")
+        onMsg (cmd : cmd(X)) {
+            forward basicrobot -m cmd : cmd(X)
+        }
+    }
+    Goto idle
+    
+    // REQUIREMENT: req-step
+    State sStep {
+        println("sStep")
+        onMsg (step : step(T)){
+            ["StepTime = payloadArg(0).toLong()"]
+            forward basicrobot -m cmd : cmd(w)
+        }
+    }
+    Transition tStop
+        whenTimeVar StepTime -> sEndStep
+        whenMsg stop -> sEndStep
+
+    // REQUIREMENT: req-stop
+    State sEndStep {
+        println("sEndStep")
+        forward basicrobot -m cmd : cmd(h)
+    }
+    Goto idle
+}
+</code></pre>
 
 <h2>Deployment</h2>
+Build both BasicRobot and RobotMind into deployable zip files with the commands:
+gradle -b build_ctxMind.gradle distZip
+gradle -b build_ctxBasicRobot.gradle distZip
 
-<h2>Maintenance</h2>
-	      	
-<br/><br/>
+Copy any *.pl file into the bin sub directory and execute the executable scripts.
+<br>
+
+<div style="background-color:rgba(86, 56, 253, 0.9); width:60%;text-align:left;font-size:small;color:white;margin-top:15px">
+By Michele Proverbio email: michele.proverbio@studio.unibo.it  
+<img src="./mp.jpg" alt="Michele Proverbio" width="15%" height="15%">
 </div>
 
-<div style="background-color:rgba(86, 56, 253, 0.9); width:100%;text-align:center;font-size:small;color:white">
-By ...  
-</div> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/plugins/autoloader/prism-autoloader.min.js"></script>
 </body>
 </html>
