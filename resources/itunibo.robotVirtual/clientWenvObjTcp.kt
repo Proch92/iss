@@ -21,18 +21,18 @@ import alice.tuprolog.*
             port  = Integer.parseInt(portStr)
             try {
                 val clientSocket = Socket(hostName, port)
-                println("clientWenvObjTcp |  CONNECTION DONE")
+                println("		--- clientWenvObjTcp |  CONNECTION DONE")
                 inFromServer = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
                 outToServer  = PrintWriter(clientSocket.getOutputStream())
                 startTheReader( actor )
             }catch( e:Exception ){
-                println("clientWenvObjTcp | ERROR $e")
+                println("		--- clientWenvObjTcp | ERROR $e")
             }
         }
 
  
         fun sendMsg(v: String) {
- 			println("clientWenvObjTcp | sending Msg $v   ")
+ 			//println("clientWenvObjTcp | sending Msg $v   ")
 			var outS = "{'type': 'alarm', 'arg': 0 }"
 //			val t = Term.createTerm(v) as Struct
 //			val ts = t.getArg(0).toString()
@@ -46,7 +46,7 @@ import alice.tuprolog.*
  			}
 			val jsonObject = JSONObject(outS)
 			val msg= "$sep${jsonObject.toString()}$sep"
-			//println("clientWenvObjTcp | sendMsg $msg   ")
+			//println("		--- clientWenvObjTcp | sendMsg $msg   ")
 			outToServer?.println(msg)
             outToServer?.flush()
          }
@@ -58,36 +58,33 @@ import alice.tuprolog.*
                         val inpuStr = inFromServer?.readLine()
                         val jsonMsgStr =
                             inpuStr!!.split(";".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()[1]
-                        //println("clientWenvObjTcp | inpuStr= $jsonMsgStr")
+                        //println("		--- clientWenvObjTcp | inpuStr= $jsonMsgStr")
                         val jsonObject = JSONObject(jsonMsgStr)
                         //println( "type: " + jsonObject.getString("type"));
                         when (jsonObject.getString("type")) {
                             //"webpage-ready" -> println("webpage-ready ")
                             "sonar-activated" -> {
-                                //println("sonar-activated ")
+                                //println("		--- sonar-activated ")
                                 val jsonArg   = jsonObject.getJSONObject("arg")
                                 val sonarName = jsonArg.getString("sonarName")
                                 val distance  = jsonArg.getInt("distance")
                                 //emitLocalStreamEvent( m )
  								val m1 = "sonar($sonarName, $distance)"
-								//println( "clientWenvObjTcp EMIT $m1"   );
+								//println( "		--- clientWenvObjTcp EMIT $m1"   );
 							    actor.emit("sonar",m1 );
                             }
                             "collision" -> {
                                 val jsonArg = jsonObject.getJSONObject("arg")
                                 val objectName = jsonArg.getString("objectName")
-                                //println("clientWenvObjTcp | collision objectName=$objectName")
-                                //val m = MsgUtil.buildEvent( "tcp", "collision","collision($objectName)")
+                                //println("		--- clientWenvObjTcp | collision objectName=$objectName")
+                                val m = MsgUtil.buildEvent( "tcp", "obstacle","obstacle($objectName)")
 								//println("clientWenvObjTcp | emit $m")
                                 //emitLocalStreamEvent( m )
- 							     actor.emit("sonarRobot","sonar(5)"
-									.replace("TARGET", objectName
-									.replace("-", "")));
+								actor.emit(m)
                            }
                         }
                     } catch (e: IOException) {
-                        //e.printStackTrace()
-						println("clientWenvObjTcp | ERROR $e   ")
+						println("		--- clientWenvObjTcp | ERROR $e   ")
 						System.exit(1)
                     }
                 }

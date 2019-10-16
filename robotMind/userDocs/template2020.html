@@ -231,8 +231,13 @@ QActor basicrobot context ctxBasicRobot {
 </code></pre>
 
 <h2>Problem analysis</h2>
+<!-- "i decided" è sbagliato. l'analisi deve dire cosa bisogna fare, non deve dire cosa farebbe l'analista per risolvere il problema -->
+<!-- disegno dello schema di principio dell'architettura logica del sistema per poterli confrontare con altri analisti -->
 I decided to logically divide the model in two parts: a Mind, responsible for behaviour control, and a Body that acts as a translator from meta-model defined 
 messages to a technology dependent codification.
+<br>
+I assume the environment is a flat euclidean space without obstacles.
+<br>
 <h3>Body - message translator</h3>
 <pre><code class="language-java">
 System basicrobot
@@ -266,6 +271,7 @@ QActor basicrobot context ctxBasicRobot {
     Goto idle
 }
 </code></pre>
+
 <h3>Mind</h3>
 The req-step problematic brings an intrinsic proactive behavior. This is solved by expanding the language expressive power, introducing
 a timer that emits an event when time is up. The FSA is then able to <em>react</em> to the event with a state transition.
@@ -277,7 +283,7 @@ Dispatch stop   : stop(X)  // req-stop
 Dispatch cmd    : cmd(X)   // req-cmd
 
 Context ctxMind ip [ host= "localhost"   port= 8023 ]
-ExternalContext ctxBasicRobot  ip [ host= "10.201.116.57"   port= 8020 ]
+Context ctxBasicRobot  ip [ host= "10.201.116.57"   port= 8020 ]
 
 ExternalQActor basicrobot context ctxBasicRobot 
 

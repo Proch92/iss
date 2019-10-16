@@ -9,7 +9,7 @@ import it.unibo.kactor.ApplMessage
 import alice.tuprolog.Term
 import alice.tuprolog.Struct
 
-class  robotDataSourceArduino( name : String, val owner : ActorBasicFsm , val conn : SerialPortConnSupport  
+class  robotDataSourceArduino( name : String, val owner : ActorBasic , val conn : SerialPortConnSupport  
 		  ) : ActorBasic(name, owner.scope){
 		
 	init{

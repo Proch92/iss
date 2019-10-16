@@ -6,11 +6,11 @@ import it.unibo.kactor.ActorBasicFsm
 import it.unibo.kactor.MsgUtil
 
 object mbotSupport{
-	lateinit var owner   : ActorBasicFsm
+	lateinit var owner   : ActorBasic
  	lateinit var conn    : SerialPortConnSupport
 	var dataSonar        : Int = 0 ; //Double = 0.0
  			
-	fun create( owner: ActorBasicFsm, port : String  ){
+	fun create( owner: ActorBasic, port : String  ){
 		this.owner = owner
 		initConn( port  )
 	}

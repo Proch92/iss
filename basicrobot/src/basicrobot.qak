@@ -7,46 +7,37 @@
 System basicrobot  
 
 Dispatch cmd          : cmd(X) // X = w | s | a ... 
-Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
-Event  sonar          : sonar(SONAR, DISTANCE)	 //from sonar in the robot environment   
+Event  obstacle  : obstacle( DISTANCE )
+Event  alarm     : alarm(V) 
 
-Context ctxBasicRobot   ip [ host= "10.201.116.57"   port= 8020 ] 
+Context ctxBasicRobot   ip [ host= "localhost"   port= 8020 ]
+
+CodedQActor robotadapter context ctxBasicRobot className "itunibo.robot.robotAdapterQa"
 
 QActor basicrobot context ctxBasicRobot { 
 	State s0 initial {
-		//run itunibo.robotVirtual.clientWenvObjTcp.initClientConn( myself )  //ANALYSIS
- //PROJECT		
-		//run itunibo.robot.robotSupport.create( myself, "virtual", "8999" )  //naive
-// Using the adapter  robotSupport
-		solve( consult("basicRobotConfig.pl") )
-		solve( robot(R, PORT) )  //R = virtual | ... 
-		ifSolved {
-			println("USING:${getCurSol(\"R\")},port=${getCurSol(\"PORT\")}")
-			run itunibo.robot.robotSupport.create( myself, @R, @PORT )	//@ is a shortcut
-		}
+		println("init")
 	}
-	Goto work
-	
-	State work{	println ( "robot waiting" ) 		
+	Goto idle
+
+	State idle{	println ( "robot waiting" ) 		
 	}	
 	Transition t0
 		whenMsg   cmd        -> handleCmd
-		whenEvent sonarRobot -> handleObstacle 
- 		 
+		whenEvent obstacle -> handleObstacle 
+ 	 
 	State handleCmd{ 
  		printCurrentMessage
 		onMsg ( cmd : cmd(X) ) { 
-			//run itunibo.robotVirtual.clientWenvObjTcp.sendMsg( payloadArg(0 ))	//ANALYSIS
-			run itunibo.robot.robotSupport.move(payloadArg(0))						//PROJECT
+			forward robotadapter -m cmd : cmd($payloadArg(0))
 		}
  	}
- 	Goto work
+ 	Goto idle
  	
 	State handleObstacle{
 		printCurrentMessage
-		//run itunibo.robotVirtual.clientWenvObjTcp.sendMsg( "h" )	//ANALYSIS
-		run itunibo.robot.robotSupport.move("h")					//PROJECT
+		forward robotadapter -m cmd : cmd(h)
 	}
-	Goto work
+	Goto idle
 }
 

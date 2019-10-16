@@ -11,7 +11,7 @@ Dispatch stop	: stop(X)  // req-stop
 Dispatch cmd 	: cmd(X)   // req-cmd
 
 Context ctxMind	ip [ host= "localhost"   port= 8023 ]
-ExternalContext ctxBasicRobot  ip [ host= "10.201.116.57"   port= 8020 ]
+Context ctxBasicRobot  ip [ host= "localhost"   port= 8020 ]
 
 ExternalQActor basicrobot context ctxBasicRobot 
 
@@ -22,7 +22,7 @@ QActor robotmind context ctxMind {
 		println("init")
 	}
 	Goto idle
-	
+
 	State idle {
 		println("idle")
 	}
@@ -36,11 +36,11 @@ QActor robotmind context ctxMind {
 	State sHandleCmd {
 		println("sHandleCmd")
 		onMsg (cmd : cmd(X)) {
-			forward basicrobot -m cmd : cmd(X)
+			forward basicrobot -m cmd : cmd($payloadArg(0))
 		}
 	}
 	Goto idle
-	
+
 	/*
 	 * REQUIREMENT: req-step
 	 */

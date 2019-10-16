@@ -35,7 +35,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						println("sHandleCmd")
 						if( checkMsgContent( Term.createTerm("cmd(X)"), Term.createTerm("cmd(X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("cmd", "cmd(X)" ,"basicrobot" ) 
+								forward("cmd", "cmd(${payloadArg(0)})" ,"basicrobot" ) 
 						}
 					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
