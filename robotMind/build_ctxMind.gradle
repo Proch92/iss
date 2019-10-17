@@ -88,7 +88,7 @@ compileTestKotlin {
 
 sourceSets {
     main.java.srcDirs += 'src'
-    main.java.srcDirs += '../iss2020Lab/it.unibo.robot2020/resources'
+    main.java.srcDirs += '../resources'
 }
 
 mainClassName = 'it.unibo.ctxMind.MainCtxMindKt'

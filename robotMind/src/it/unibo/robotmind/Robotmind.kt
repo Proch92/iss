@@ -26,9 +26,11 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				state("idle") { //this:State
 					action { //it:State
 						println("idle")
+						var loopCounter = 0;
 					}
 					 transition(edgeName="tWork0",targetState="sStep",cond=whenDispatch("step"))
 					transition(edgeName="tWork1",targetState="sHandleCmd",cond=whenDispatch("cmd"))
+					transition(edgeName="tWork2",targetState="sLoop",cond=whenDispatch("loop"))
 				}	 
 				state("sHandleCmd") { //this:State
 					action { //it:State
@@ -51,8 +53,8 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						stateTimer = TimerActor("timer_sStep", 
 							scope, context!!, "local_tout_robotmind_sStep", StepTime )
 					}
-					 transition(edgeName="tStop2",targetState="sEndStep",cond=whenTimeout("local_tout_robotmind_sStep"))   
-					transition(edgeName="tStop3",targetState="sEndStep",cond=whenDispatch("stop"))
+					 transition(edgeName="tStop3",targetState="sEndStep",cond=whenTimeout("local_tout_robotmind_sStep"))   
+					transition(edgeName="tStop4",targetState="sEndStep",cond=whenDispatch("stop"))
 				}	 
 				state("sEndStep") { //this:State
 					action { //it:State
@@ -60,6 +62,21 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						forward("cmd", "cmd(h)" ,"basicrobot" ) 
 					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
+				}	 
+				state("sLoop") { //this:State
+					action { //it:State
+						println("sLoop")
+						forward("cmd", "cmd(w)" ,"basicrobot" ) 
+					}
+					 transition(edgeName="tLoop5",targetState="sObstacleLoop",cond=whenEvent("obstacle"))
+				}	 
+				state("sObstacleLoop") { //this:State
+					action { //it:State
+						println("sObstacleLoop")
+						loopCounter += 1;
+						forward("cmd", "cmd(a)" ,"basicrobot" ) 
+					}
+					 transition( edgeName="goto",targetState="sLoop", cond=doswitch() )
 				}	 
 			}
 		}

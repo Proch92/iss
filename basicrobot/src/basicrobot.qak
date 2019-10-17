@@ -41,3 +41,21 @@ QActor basicrobot context ctxBasicRobot {
 	Goto idle
 }
 
+/*
+ * The actor sentinel is sensible to alarm events emitted by the external world
+ */
+ QActor sentinel context ctxBasicRobot{
+	State s0 initial{ 
+		println("sentinel start")
+	}
+	Transition t0 
+		whenEvent alarm -> handleAlarm
+ 	
+	State handleAlarm{
+		printCurrentMessage
+		println("sentinel handleAlarm ")
+	}
+ 	Transition t0 
+		whenEvent alarm -> handleAlarm
+ }
+

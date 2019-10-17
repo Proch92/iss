@@ -1,8 +1,3 @@
-##############################################################
-# basicrobotusage.py
-# sendDispatch       : sends a command in output
-# read               : acquires data from input
-##############################################################
 import socket
 import time
 
@@ -18,6 +13,7 @@ turnRightMsg  = "msg(cmd,dispatch,python," + ACTOR_NAME + ",cmd(d),-1)"
 haltMsg       = "msg(cmd,dispatch,python," + ACTOR_NAME + ",cmd(h),-1)"
 stepMsg       = "msg(step,dispatch,python," + ACTOR_NAME + ",step({}),-1)"
 stopMsg       = "msg(stop,dispatch,python," + ACTOR_NAME + ",stop(X),-1)"
+loopMsg       = "msg(loop,dispatch,python," + ACTOR_NAME + ",loop(X),-1)"
 
 def connect(port) :
     server_address = ('localhost', port)
@@ -32,7 +28,7 @@ def sendDispatch(message):
 
 def work() :
     sendDispatch(goForwardMsg)
-    time.sleep(1)
+    time.sleep(2)
     sendDispatch(goBackwardMsg)
 
 def read() :

@@ -9,6 +9,9 @@ System robotmind
 Dispatch step	: step(T)  // req-step
 Dispatch stop	: stop(X)  // req-stop
 Dispatch cmd 	: cmd(X)   // req-cmd
+Dispatch loop	: loop(X)
+Event  obstacle  : obstacle(DISTANCE)
+Event  alarm     : alarm(V) 
 
 Context ctxMind	ip [ host= "localhost"   port= 8023 ]
 Context ctxBasicRobot  ip [ host= "localhost"   port= 8020 ]
@@ -25,10 +28,12 @@ QActor robotmind context ctxMind {
 
 	State idle {
 		println("idle")
+		["var loopCounter = 0;"]
 	}
 	Transition tWork
 		whenMsg step -> sStep
 		whenMsg cmd -> sHandleCmd
+		whenMsg loop -> sLoop
 
 	/*
 	 * REQUIREMENT: req-cmd
@@ -64,4 +69,20 @@ QActor robotmind context ctxMind {
 	}
 	Goto idle
 	
+	/*
+	 * LOOP
+	 */
+	State sLoop {
+		println("sLoop")
+		forward basicrobot -m cmd : cmd(w)
+	}
+	Transition tLoop
+		whenEvent obstacle -> sObstacleLoop
+	
+	State sObstacleLoop {
+		println("sObstacleLoop")
+		["loopCounter += 1;"]
+		forward basicrobot -m cmd : cmd(a)
+	}
+	Goto sLoop
 }
