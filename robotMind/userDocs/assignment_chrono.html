@@ -1,0 +1,302 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <!--
+<link rel="stylesheet" type="text/css" href="../css/issStyle1.css">
+<script type="text/javascript" src="../css/issStyle.js"></script>
+-->
+<style type="text/css">
+<!--
+body
+{
+    margin-left:  30px;
+    margin-right: 30px;
+};
+
+P
+{
+    font-family: Tahoma;
+    font-size: 10pt;
+};
+
+a, a:visited, a:active, a:link, a:hover {
+    text-decoration: underline;
+    color: #545454;
+    background-color: transparent;
+}
+
+a:hover {
+    background-color: #cccccc;
+}
+
+
+hr {
+    clear: both;
+    height: 1px;
+    color: #242424;
+    background-color: transparent;
+}
+
+h1, h2, h3 {
+    color: #242424;
+    clear: left;
+    font: 100% Tahoma, Helvetica, Arial, sans-serif;
+    margin: 10;
+    margin-right: 15px;
+    margin-bottom: 0.5em;
+    padding-top: 0.5em;
+    border-bottom: 1px solid #242424;
+}
+
+h1 {
+    font-size: 150%;
+    background-color: #b2c0ff;
+}
+
+h2 {
+    background-color: #d9fbff;
+    font-size: 110%;
+}
+
+h3 {
+	background-color: #e6ccff;
+    font-size: 80%;
+}
+h4 {
+    background-color: #99ffcc;
+    font-size: 100%;
+	width: 750px;
+}
+#i {
+    color: #ff1010;
+}
+tt{
+	font-family: "Arial";
+    font-size: 80%;
+	color: #006600;
+}
+em{
+	font-family: "Arial";
+    font-size: 80%;
+	font-weight: bold;
+	border-style:solid;
+	border-color: #ccffff;
+    color: #0033cc;
+}
+bc{
+	font-family: "Arial";
+	font-size: 80%;
+	font-weight: bold;
+    color: #990000;
+	background-color: #fcf8c7;
+}
+k{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #990000;
+	 
+}
+ks{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #0000CD	;
+	 
+}
+kc{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #008000	;
+	 
+}
+pre{
+	font-family: "Helvetica";
+	font-size: 60%;
+	background-color: #fcf8c7;
+	border: 1px solid blue;
+}
+code {
+    font-size: 60% !important;
+}
+m{
+	font-family: "Helvetica";
+	line-height: 100%;
+ 	font-size: 75%;
+}
+div.body{
+	width: 800px;
+    font-size: 18px;
+}    
+div.req{
+	background-color: #d9ffb3;
+    font-size: 18px;
+	width: 700px;
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}       
+div.remark{
+	background-color: #FFFC33;     
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}  
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}         
+    
+  -->
+</style>
+    
+<head>
+    <title>Lab ...</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/themes/prism-coy.min.css" rel="stylesheet" />
+</head>
+    
+<body>
+<!--<div id="top">
+<h1>81614 - LABORATORIO DI SISTEMI SOFTWARE <font size="5"></font> </h1>
+</div>-->
+
+<div class="body">
+
+<h2>Requirements</h2>
+<div class="req">
+    Extend the req-step routine by measuring the elapsed time from the start of the routine to its end.
+</div>
+
+<h2>Requirement analysis</h2>
+I assume the time must be printed in those circumstances:
+<ul>
+    <li>the step routine ends as expected after the timer fires</li>
+    <li>a <em>stop</em> command is received</li>
+    <li>the robot encounters an obstacle and stops</li>
+</ul>
+
+<pre><code class="language-java">
+System robotchrono
+
+Dispatch cmd    : cmd(X)   // req-cmd
+Dispatch step   : step(T)  // req-step
+Dispatch stop   : stop(X)  // req-stop
+Event  obstacle : obstacle(DISTANCE)
+
+Context ctxMind ip [ host= "localhost"   port= 8023 ]
+Context ctxBasicRobot  ip [ host= "localhost"   port= 8020 ]
+ExternalQActor basicrobot context ctxBasicRobot 
+
+QActor robotmind context stepper {
+    ["var StepTime = 0L;"]
+
+    State s0 initial {
+        println("init")
+    }
+    Goto idle
+    
+    State idle {
+        println("idle")
+    }
+    Transition tWork
+        whenMsg step -> sStep
+        whenMsg cmd -> sCmd
+
+    ... // req-cmd
+    
+    // REQUIREMENT: req-step
+    State sStep {
+        println("sStep")
+        onMsg (step : step(T)){
+            ["StepTime = payloadArg(0).toLong()"]
+            forward basicrobot -m cmd : cmd(w)
+        }
+        // start chronometer
+    }
+    Transition tStop
+        whenTimeVar StepTime -> sEndStep
+        whenMsg stop -> sEndStep
+        whenEvent obstacle -> sEndStep
+
+    // REQUIREMENT: req-stop
+    State sEndStep {
+        println("sEndStep")
+        forward basicrobot -m cmd : cmd(h)
+        // measure elapsed time
+    }
+    Goto idle
+}
+</code></pre>
+
+<h2>Problem analysis</h2>
+The robot must be able to <em>proactively</em> start a chronometer when entering a step routine, as well as stopping it to read the elapsed time value.
+
+<pre><code class="language-java">
+System robotchrono
+
+Dispatch cmd    : cmd(X)   // req-cmd
+Dispatch step   : step(T)  // req-step
+Dispatch stop   : stop(X)  // req-stop
+Event  obstacle : obstacle(DISTANCE)
+
+Context ctxMind ip [ host= "localhost"   port= 8023 ]
+Context ctxBasicRobot  ip [ host= "localhost"   port= 8020 ]
+ExternalQActor basicrobot context ctxBasicRobot 
+
+QActor robotmind context stepper {
+    ["var StepTime = 0L;"]
+    ["var Start = 0L;"]
+
+    State s0 initial {
+        println("init")
+    }
+    Goto idle
+    
+    State idle {
+        println("idle")
+    }
+    Transition tWork
+        whenMsg step -> sStep
+        whenMsg cmd -> sCmd
+
+    ... // req-cmd
+    
+    // REQUIREMENT: req-step
+    State sStep {
+        println("sStep")
+        onMsg (step : step(T)){
+            ["StepTime = payloadArg(0).toLong();"]
+            ["Start = System.currentTimeMillis();"]
+            forward basicrobot -m cmd : cmd(w)
+        }
+    }
+    Transition tStop
+        whenTimeVar StepTime -> sEndStep
+        whenMsg stop -> sEndStep
+        whenEvent obstacle -> sEndStep
+
+    // REQUIREMENT: req-stop
+    State sEndStep {
+        println("sEndStep")
+        forward basicrobot -m cmd : cmd(h)
+        ["val Elapsed = System.currentTimeMillis() - Start;"]
+        println("elapsed time: ${Elapsed}")
+    }
+    Goto idle
+}
+</code></pre>
+
+<h2>Deployment</h2>
+Build both BasicRobot and RobotMind into deployable zip files with the commands:
+gradle -b build_ctxMind.gradle distZip
+gradle -b build_ctxBasicRobot.gradle distZip
+
+Copy any *.pl file into the bin sub directory and execute the executable scripts.
+<br>
+
+<div style="background-color:rgba(86, 56, 253, 0.9); width:60%;text-align:left;font-size:small;color:white;margin-top:15px">
+By Michele Proverbio email: michele.proverbio@studio.unibo.it  
+<img src="./mp.jpg" alt="Michele Proverbio" width="15%" height="15%">
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>
