@@ -161,119 +161,115 @@ table, th, td {
 
 <h2>Requirements</h2>
 <div class="req">
-    Extend the req-step routine by measuring the elapsed time from the start of the routine to its end.
+    Extend the <em>robotchrono</em> system by adding a new command:
+    - loop: the robot must be able to run and measure the arena perimeter
 </div>
 
 <h2>Requirement analysis</h2>
-I assume the time must be printed in those circumstances:
-<ul>
-    <li>the step routine ends as expected after the timer fires</li>
-    <li>a <em>stop</em> command is received</li>
-    <li>the robot encounters an obstacle and stops</li>
-</ul>
+I assume the robot lays on a plane within a rectangular box. There are no other obstacles. <br>
+I also assume the loop command is sent when the robot is in one of the 4 corners of the box. <br>
+The perimeter measurement problematic is left fot the Problem analysis stage.
 
 <pre><code class="language-java">
-System robotchrono
+System looper
 
-Dispatch cmd    : cmd(X)   // req-cmd
-Dispatch step   : step(T)  // req-step
-Dispatch stop   : stop(X)  // req-stop
-Event  obstacle : obstacle(DISTANCE)
+...
 
-Context ctxMind ip [ host= "localhost"   port= 8023 ]
-Context ctxBasicRobot  ip [ host= "localhost"   port= 8020 ]
-ExternalQActor basicrobot context ctxBasicRobot 
+Dispatch loop   : loop(X)  // req-loop
 
-QActor robotmind context stepper {
-    ["var StepTime = 0L;"]
+...
 
-    State s0 initial {
-        println("init")
-    }
-    Goto idle
-    
+QActor robotmind context ctxMind {
+    ["var loopCounter = 0;"]
+
     State idle {
         println("idle")
     }
     Transition tWork
-        whenMsg step -> sStep
-        whenMsg cmd -> sCmd
+        ...
+        whenMsg loop -> sLoop
 
-    ... // req-cmd
-    
-    State sStep {
-        println("sStep")
-        onMsg (step : step(T)){
-            ["StepTime = payloadArg(0).toLong()"]
-            forward basicrobot -m cmd : cmd(w)
-        }
-        // start chronometer
+    ...
+
+    State sLoop {
+        println("sLoop")
+        forward basicrobot -m cmd : cmd(w)
     }
-    Transition tStop
-        whenTimeVar StepTime -> sEndStep
-        whenMsg stop -> sEndStep
-        whenEvent obstacle -> sEndStep
+    Transition tLoop
+        whenEvent obstacle and "loopCounter < 3" -> sObstacleLoop
+        whenEvent obstacle and "loopCounter == 3" -> sEndLoop
+    
+    State sObstacleLoop {
+        println("sObstacleLoop")
+        ["loopCounter += 1;"]
+        forward basicrobot -m cmd : cmd(a)
+    }
+    Goto sLoop
 
-    State sEndStep {
-        println("sEndStep")
-        forward basicrobot -m cmd : cmd(h)
-        // measure elapsed time
+    State sEndLoop {
+        println("sEndLoop")
+        ["loopCounter = 0;"]
+        forward basicrobot -m cmd : cmd(a)
     }
     Goto idle
 }
 </code></pre>
 
 <h2>Problem analysis</h2>
-The robot must be able to <em>proactively</em> start a chronometer when entering a step routine, as well as stopping it to read the elapsed time value.
+The problematic of deriving a distance from the elapsed movement time requires a good measure of the robot speed.
+I assume the accelleration to be instantanious (i.e. non continuous) and the speed constant and known. This is pretty straightforward in a virtual environment
+while it is to be considered impossible in the real environment. In the real world assumptions and approximations are needed to complete the task.
 
 <pre><code class="language-java">
-System robotchrono
+System looper
 
-Dispatch cmd    : cmd(X)   // req-cmd
-Dispatch step   : step(T)  // req-step
-Dispatch stop   : stop(X)  // req-stop
-Event  obstacle : obstacle(DISTANCE)
+...
 
-Context ctxMind ip [ host= "localhost"   port= 8023 ]
-Context ctxBasicRobot  ip [ host= "localhost"   port= 8020 ]
-ExternalQActor basicrobot context ctxBasicRobot 
+Dispatch loop   : loop(X)  // req-loop
 
-QActor robotmind context stepper {
+...
+
+QActor robotmind context ctxMind {
     ["var StepTime = 0L;"]
-    ["var Start = 0L;"]
-
-    State s0 initial {
-        println("init")
-    }
-    Goto idle
+    ["var start = 0L;"]
+    ["var elapsed = 0L;"]
+    ["var loopCounter = 0;"]
     
     State idle {
         println("idle")
     }
     Transition tWork
-        whenMsg step -> sStep
-        whenMsg cmd -> sCmd
+        ...
+        whenMsg loop -> sLoop
 
-    ... // req-cmd
-    
-    State sStep {
-        println("sStep")
-        onMsg (step : step(T)){
-            ["StepTime = payloadArg(0).toLong();"]
-            ["Start = System.currentTimeMillis();"] // start the chronometer
-            forward basicrobot -m cmd : cmd(w)
-        }
+    ...
+
+    State sLoop {
+        println("sLoop")
+        ["start = System.currentTimeMillis();"] // start the chronometer
+        forward basicrobot -m cmd : cmd(w)
     }
-    Transition tStop
-        whenTimeVar StepTime -> sEndStep
-        whenMsg stop -> sEndStep
-        whenEvent obstacle -> sEndStep
+    Transition tLoop
+        whenEvent obstacle and "loopCounter < 3" -> sObstacleLoop
+        whenEvent obstacle and "loopCounter == 3" -> sEndLoop
+    
+    State sObstacleLoop {
+        println("sObstacleLoop")
+        ["val runtime = System.currentTimeMillis() - start;"] // stop the chronometer
+        ["elapsed += runtime;"]
+        ["loopCounter += 1;"]
+        forward basicrobot -m cmd : cmd(a)
+    }
+    Goto sLoop
 
-    State sEndStep {
-        println("sEndStep")
-        forward basicrobot -m cmd : cmd(h)
-        ["val Elapsed = System.currentTimeMillis() - Start;"] // stop the chronometer
-        println("elapsed time: ${Elapsed}")
+    State sEndLoop {
+        println("sEndLoop")
+        ["loopCounter = 0;"]
+        ["elapsed = 0L;"]
+        ["val perimeter = elapsed * 0.2;"] // stop the chronometer
+        println("elapsed time: ${elapsed}")
+        println("perimeter: ${perimeter} meters")
+        forward basicrobot -m cmd : cmd(a)
     }
     Goto idle
 }
