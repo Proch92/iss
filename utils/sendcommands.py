@@ -35,7 +35,7 @@ def read() :
     data = sock.recv(BUFFER_SIZE)
     print( "received data:", data )
 
-def terminate() :
+def terminate():
     sock.close()
     print("BYE")
 
