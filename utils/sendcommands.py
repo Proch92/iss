@@ -1,7 +1,7 @@
 import socket
 import time
 
-ACTOR_NAME = "basicrobot"
+ACTOR_NAME = "robotmind"
 PORT = 8020
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -27,9 +27,8 @@ def sendDispatch(message):
     sock.send(byt)
 
 def work() :
-    sendDispatch(goForwardMsg)
-    time.sleep(2)
-    sendDispatch(goBackwardMsg)
+    # sendDispatch(loopMsg)
+    sendDispatch(stepMsg.format(10000))
 
 def read() :
     BUFFER_SIZE = 1024

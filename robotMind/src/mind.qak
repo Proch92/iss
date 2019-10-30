@@ -13,16 +13,16 @@ Dispatch loop	: loop(X)
 Event  obstacle  : obstacle(DISTANCE)
 Event  alarm     : alarm(V) 
 
-Context ctxMind	ip [ host= "localhost"   port= 8023 ]
-Context ctxBasicRobot  ip [ host= "localhost"   port= 8020 ]
+Context ctxMind	ip [ host= "localhost"   port= 8020 ]
+Context ctxBasicRobot  ip [ host= "10.201.116.57"   port= 8018 ]
 
 ExternalQActor basicrobot context ctxBasicRobot 
 
 QActor robotmind context ctxMind {
-	["var StepTime = 0L;"]
-    ["var start = 0L;"]
-	["var elapsed = 0L;"]
-	["var loopCounter = 0;"]
+	["var StepTime = 0L;
+    var Start = 0L;
+	var Elapsed = 0L;
+	var LoopCounter = 0;"]
 
 	State s0 initial {
 		println("init")
@@ -55,12 +55,14 @@ QActor robotmind context ctxMind {
 		println("sStep")
 		onMsg (step : step(T)){
 			["StepTime = payloadArg(0).toLong()"]
+			["Start = System.currentTimeMillis();"] // start the chronometer
 			forward basicrobot -m cmd : cmd(w)
 		}
 	}
 	Transition tStop
 		whenTimeVar StepTime -> sEndStep
-		whenMsg stop -> sEndStep
+		whenMsg stop -> sEndStepFailure
+		whenEvent obstacle -> sEndStepFailure
 
 	/*
 	 * REQUIREMENT: req-stop
@@ -71,34 +73,43 @@ QActor robotmind context ctxMind {
 	}
 	Goto idle
 	
+	State sEndStepFailure {
+		println("sEndStepFailure")
+		["val Runtime = System.currentTimeMillis() - Start;"] // stop the chronometer
+		println("elapsed time: ${Runtime}")
+		forward basicrobot -m cmd : cmd(h)
+	}
+	Goto idle
+	
 	/*
 	 * LOOP
 	 */
 	State sLoop {
 		println("sLoop")
-		["start = System.currentTimeMillis();"] // start the chronometer
+		["Start = System.currentTimeMillis();"] // start the chronometer
 		forward basicrobot -m cmd : cmd(w)
 	}
 	Transition tLoop
-		whenEvent obstacle and "loopCounter < 3" -> sObstacleLoop
-		whenEvent obstacle and "loopCounter == 3" -> sEndLoop
+		whenEvent obstacle and "LoopCounter < 3" -> sObstacleLoop
+		whenEvent obstacle and "LoopCounter == 3" -> sEndLoop
 	
 	State sObstacleLoop {
 		println("sObstacleLoop")
-        ["val runtime = System.currentTimeMillis() - start;"] // stop the chronometer
-        ["elapsed += runtime;"]
-		["loopCounter += 1;"]
+        ["val Runtime = System.currentTimeMillis() - Start;"] // stop the chronometer
+        ["Elapsed += Runtime;"]
+		["LoopCounter += 1;"]
 		forward basicrobot -m cmd : cmd(a)
+		delay 1
 	}
 	Goto sLoop
 
 	State sEndLoop {
 		println("sEndLoop")
-		["loopCounter = 0;"]
-		["elapsed = 0L;"]
-        ["val perimeter = elapsed * 0.2;"] // stop the chronometer
-        println("elapsed time: ${elapsed}")
-        println("perimeter: ${perimeter} meters")
+		["LoopCounter = 0;"]
+		["Elapsed = 0L;"]
+        ["val Perimeter = Elapsed * 0.2;"] // stop the chronometer
+        println("elapsed time: ${Elapsed}")
+        println("perimeter: ${Perimeter} meters")
 		forward basicrobot -m cmd : cmd(a)
 	}
 	Goto idle

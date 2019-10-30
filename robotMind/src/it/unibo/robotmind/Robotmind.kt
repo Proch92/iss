@@ -16,6 +16,9 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		var StepTime = 0L;
+		    var Start = 0L;
+			var Elapsed = 0L;
+			var LoopCounter = 0;
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -26,7 +29,6 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				state("idle") { //this:State
 					action { //it:State
 						println("idle")
-						var loopCounter = 0;
 					}
 					 transition(edgeName="tWork0",targetState="sStep",cond=whenDispatch("step"))
 					transition(edgeName="tWork1",targetState="sHandleCmd",cond=whenDispatch("cmd"))
@@ -48,13 +50,15 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						if( checkMsgContent( Term.createTerm("step(T)"), Term.createTerm("step(T)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								StepTime = payloadArg(0).toLong()
+								Start = System.currentTimeMillis();
 								forward("cmd", "cmd(w)" ,"basicrobot" ) 
 						}
 						stateTimer = TimerActor("timer_sStep", 
 							scope, context!!, "local_tout_robotmind_sStep", StepTime )
 					}
 					 transition(edgeName="tStop3",targetState="sEndStep",cond=whenTimeout("local_tout_robotmind_sStep"))   
-					transition(edgeName="tStop4",targetState="sEndStep",cond=whenDispatch("stop"))
+					transition(edgeName="tStop4",targetState="sEndStepFailure",cond=whenDispatch("stop"))
+					transition(edgeName="tStop5",targetState="sEndStepFailure",cond=whenEvent("obstacle"))
 				}	 
 				state("sEndStep") { //this:State
 					action { //it:State
@@ -63,20 +67,46 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
+				state("sEndStepFailure") { //this:State
+					action { //it:State
+						println("sEndStepFailure")
+						val Runtime = System.currentTimeMillis() - Start;
+						println("elapsed time: ${Runtime}")
+						forward("cmd", "cmd(h)" ,"basicrobot" ) 
+					}
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
+				}	 
 				state("sLoop") { //this:State
 					action { //it:State
 						println("sLoop")
+						Start = System.currentTimeMillis();
 						forward("cmd", "cmd(w)" ,"basicrobot" ) 
 					}
-					 transition(edgeName="tLoop5",targetState="sObstacleLoop",cond=whenEvent("obstacle"))
+					 transition(edgeName="tLoop6",targetState="sObstacleLoop",cond=whenEventGuarded("obstacle",{LoopCounter < 3}))
+					transition(edgeName="tLoop7",targetState="sEndLoop",cond=whenEventGuarded("obstacle",{LoopCounter == 3}))
 				}	 
 				state("sObstacleLoop") { //this:State
 					action { //it:State
 						println("sObstacleLoop")
-						loopCounter += 1;
+						val Runtime = System.currentTimeMillis() - Start;
+						Elapsed += Runtime;
+						LoopCounter += 1;
 						forward("cmd", "cmd(a)" ,"basicrobot" ) 
+						delay(1) 
 					}
 					 transition( edgeName="goto",targetState="sLoop", cond=doswitch() )
+				}	 
+				state("sEndLoop") { //this:State
+					action { //it:State
+						println("sEndLoop")
+						LoopCounter = 0;
+						Elapsed = 0L;
+						val Perimeter = Elapsed * 0.2;
+						println("elapsed time: ${Elapsed}")
+						println("perimeter: ${Perimeter} meters")
+						forward("cmd", "cmd(a)" ,"basicrobot" ) 
+					}
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
 			}
 		}

@@ -10,7 +10,7 @@ Dispatch cmd          : cmd(X) // X = w | s | a ...
 Event  obstacle  : obstacle( DISTANCE )
 Event  alarm     : alarm(V) 
 
-Context ctxBasicRobot   ip [ host= "localhost"   port= 8020 ]
+Context ctxBasicRobot   ip [ host= "10.201.116.57"   port= 8018 ]
 
 CodedQActor robotadapter context ctxBasicRobot className "itunibo.robot.robotAdapterQa"
 
