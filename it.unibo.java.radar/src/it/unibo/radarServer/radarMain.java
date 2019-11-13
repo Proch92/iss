@@ -11,22 +11,33 @@ public class radarMain {
 		
 		ServerSocket server = new ServerSocket(6789);
 		Socket socket = server.accept();
-		
-		String distance;
-		int dist;
+		BufferedReader buffIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		DataOutputStream buffOut = new DataOutputStream(socket.getOutputStream());
 		
 		while (true) {
-			BufferedReader buffIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			distance = buffIn.readLine();
-			dist = 0;
+			int distance = tryCastInt(receive(buffIn));
 			
-			try {
-				dist = Integer.parseInt(distance);
-			} catch(Exception e) {}
+			System.out.println(distance);
+			radar.update(Integer.toString(distance), "0");
 			
-			System.out.println(dist);
-			radar.update(Integer.toString(dist), "0");
+			ack(buffOut);
 		}
+	}
+	
+	private static String receive(BufferedReader buffIn) throws Exception {
+		return buffIn.readLine();
+	}
+	
+	private static int tryCastInt(String message) {
+		int dist = 0;
+		try {
+			dist = Integer.parseInt(message);
+		} catch(Exception e) {}
+		return dist;
+	}
+	
+	private static void ack(DataOutputStream buffOut) throws Exception {
+		buffOut.writeBytes("ACK\n");
 	}
 
 }
