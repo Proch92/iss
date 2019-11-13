@@ -58,83 +58,83 @@ h2 {
 }
 
 h3 {
-	background-color: #e6ccff;
+    background-color: #e6ccff;
     font-size: 80%;
 }
 h4 {
     background-color: #99ffcc;
     font-size: 100%;
-	width: 750px;
+    width: 750px;
 }
 #i {
     color: #ff1010;
 }
 tt{
-	font-family: "Arial";
+    font-family: "Arial";
     font-size: 80%;
-	color: #006600;
+    color: #006600;
 }
 em{
-	font-family: "Arial";
+    font-family: "Arial";
     font-size: 80%;
-	font-weight: bold;
-	border-style:solid;
-	border-color: #ccffff;
+    font-weight: bold;
+    border-style:solid;
+    border-color: #ccffff;
     color: #0033cc;
 }
 bc{
-	font-family: "Arial";
-	font-size: 80%;
-	font-weight: bold;
+    font-family: "Arial";
+    font-size: 80%;
+    font-weight: bold;
     color: #990000;
-	background-color: #fcf8c7;
+    background-color: #fcf8c7;
 }
 k{
-	font-family: "Arial";
-	font-weight: bold;
+    font-family: "Arial";
+    font-weight: bold;
     color: #990000;
-	 
+     
 }
 ks{
-	font-family: "Arial";
-	font-weight: bold;
-    color: #0000CD	;
-	 
+    font-family: "Arial";
+    font-weight: bold;
+    color: #0000CD  ;
+     
 }
 kc{
-	font-family: "Arial";
-	font-weight: bold;
-    color: #008000	;
-	 
+    font-family: "Arial";
+    font-weight: bold;
+    color: #008000  ;
+     
 }
 pre{
-	font-family: "Helvetica";
-	font-size: 60%;
-	background-color: #fcf8c7;
-	border: 1px solid blue;
+    font-family: "Helvetica";
+    font-size: 60%;
+    background-color: #fcf8c7;
+    border: 1px solid blue;
 }
 code {
-    font-size: 43% !important;
+    font-size: 60% !important;
 }
 m{
-	font-family: "Helvetica";
-	line-height: 100%;
- 	font-size: 75%;
+    font-family: "Helvetica";
+    line-height: 100%;
+    font-size: 75%;
 }
 div.body{
-	width: 800px;
+    width: 800px;
     font-size: 18px;
 }    
 div.req{
-	background-color: #d9ffb3;
+    background-color: #d9ffb3;
     font-size: 18px;
-	width: 700px;
+    width: 700px;
     border: 3px solid green;
     padding: 15px;
     margin: 10px;
 }       
 div.remark{
-	background-color: #FFFC33;     
+    background-color: #FFFC33;     
     border: 3px solid green;
     padding: 15px;
     margin: 10px;
@@ -148,55 +148,51 @@ table, th, td {
 </style>
     
 <head>
-    <title>Lab ...</title>
+    <title>Bottom-Up FSA implementation</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/themes/prism-coy.min.css" rel="stylesheet" />
 </head>
     
 <body>
-<div id="top">
+<!--<div id="top">
 <h1>81614 - LABORATORIO DI SISTEMI SOFTWARE <font size="5"></font> </h1>
-</div>  
+</div>-->
 
-<div class="body"> 
-<h2>Introduction</h2>
- 
-<center>
-<table style="width:100%" border="1">
-<tr>
-<td>comment 1</td>
-<td>comment 2</td>
-</tr>
-</table>
-</center> 	
+<div class="body">
+<h1>Bottom-Up FSA implementation - Michele Proverbio</h1>
 
 <h2>Requirements</h2>
 <div class="req">
-...
+    Build a bottom-up implementation of a FSA describing the behaviour of a robot with those specifics:
+    <ul>
+        <li>the robot moves forward until an obstacle is detected</li>
+        <li>the robot must send sonar data to a radar with a request-response pattern</li>
+    </ul>
+</div>
+
+<div class="req">
+    Expand the previous requirements: the radar might request an angle to the robot before responding to the request sending the sonar data.
 </div>
 
 <h2>Requirement analysis</h2>
-<pre><code class="language-java">
-</code></pre>
+<img src="./fig1.jpg" width="400px">
+<img src="./fig2.jpg" width="400px">
 
 <h2>Problem analysis</h2>
+<p>
+The FSA is implemented through a transition matrix and an event loop that checks if a tarnsition gets applied.
+</p>
+<p>
+States actions are implemented by procedures that get called by the event loop once a transition gets activated.
+</p>
+<p>
+The current state is stored in a variable.
+</p>
 
-<h2>Test plans</h2> 
 
-<h2>Project</h2> 
-
-<h2>Testing</h2> 
-
-<h2>Deployment</h2> 
-
-<h2>Maintenance</h2> 
-	      	
-<br/><br/> 	
-</div>  
 
 <div style="background-color:rgba(86, 56, 253, 0.9); width:60%;text-align:left;font-size:small;color:white;margin-top:15px">
 By Michele Proverbio email: michele.proverbio@studio.unibo.it  
 <img src="./mp.jpg" alt="Michele Proverbio" width="15%" height="15%">
-</div> 
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/components/prism-core.min.js"></script>
