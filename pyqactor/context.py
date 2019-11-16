@@ -1,21 +1,29 @@
 from fsmactor import FSMactor
+import pyqak
 import asyncio
-
-
-async def start_actors(actors):
-    tasks = [asyncio.create_task(actor.start()) for name, actor in actors.items()]
-    await asyncio.wait(tasks)
 
 
 class Context(object):
     def __init__(self):
         self.actors = {}
 
-    def run(self):
+    async def run(self):
         print('STARTING')
-        asyncio.run(start_actors(self.actors))
 
-    def add_actor(self, name):
-        newactor = FSMactor(name)
+        for _, actor in self.actors.items():
+            await actor.init()
+
+        tasks = []
+        for name, actor in self.actors.items():
+            tasks.append(asyncio.create_task(actor.start()))
+
+        await asyncio.wait(tasks)
+
+    def actor_scope(self, name):
+        newactor = FSMactor(name, self)
         self.actors[name] = newactor
+        pyqak.current_actor_scope = newactor
         return newactor
+
+    def send_message(self, msg):
+        self.actors[msg._to].send_message(msg)

@@ -3,7 +3,11 @@ import asyncio
 
 class Actor(object):
     def __init__(self):
+        self.initialized = False
+
+    async def init(self):
         self.queue = asyncio.Queue()
+        self.initialized = True
 
     async def start(self):
         self.on_start()

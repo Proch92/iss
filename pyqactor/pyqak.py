@@ -1,3 +1,6 @@
+import asyncio
+
+
 current_actor_scope = None
 
 
@@ -15,12 +18,7 @@ def state(foo):
     return foo
 
 
-def transition(state_from, state_to, event):
-    global current_actor_scope
-    current_actor_scope.add_transition(state_from, state_to, event)
+# FUNCTIONS
 
-
-def actor_scope(actor_name, ctx):
-    global current_actor_scope
-    actor = ctx.add_actor(actor_name)
-    current_actor_scope = actor
+def run(context):
+    asyncio.run(context.run())

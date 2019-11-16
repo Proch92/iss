@@ -4,12 +4,16 @@ from asyncactor import Actor
 
 
 class FSMactor(Actor):
-    def __init__(self, name):
+    def __init__(self, name, context):
         super().__init__()
         self.name = name
+        self.context = context
         self.states = {}
-        self.transitions = {}
+        self.transitions = []
         self.current_state = None
+
+    def __str__(self):
+        return self.name
 
     def add_state(self, foo):
         self.states[foo.__name__] = foo
@@ -22,29 +26,33 @@ class FSMactor(Actor):
         self.execute_current_state()
 
     def execute_current_state(self):
-        self.states[self.current_state]()
+        self.states[self.current_state](self)
 
-    def add_transition(self, s_from, s_to, trans_type):
-        if trans_type is Epsilon:
-            def goto_wrapper(func):
-                def wrapper():
-                    func()
-                    self.goto(s_to)
-                return wrapper
+    def dispatch(self, to, payload):
+        msg = Message('dispatch', self.name, to, payload)
+        self.context.send_message(msg)
 
-            self.states[s_from] = goto_wrapper(self.states[s_from])
+    def transition(self, to, event):
+        if event is Epsilon:
+            self.goto(to)
         else:
-            if s_from in self.transitions:
-                self.transitions[s_from].append({'state_to': s_to, 'trans_type': trans_type})
+            self.transitions.append((to, event))
 
     def on_start(self):
-        print('on_start')
         self.execute_current_state()
 
     def on_receive(self, message):
-        trans = self.transitions[self.current_state]
-        for t in trans:
-            if t['trans_type'] is WhenMsg:
-                if isinstance(message, Message):
-                    self.goto(t['state_to'])
+        next_state = None
+        for to, trans in self.transitions:
+            if trans is WhenMsg:
+                if message._type in ['dispatch', 'request']:
+                    next_state = to
                     break
+            elif trans is WhenEvent:
+                if message._type == 'event':
+                    next_state = to
+                    break
+
+        if next_state:
+            self.transitions = []
+            self.goto(next_state)
