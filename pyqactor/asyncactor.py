@@ -3,15 +3,15 @@ import asyncio
 
 class Actor(object):
     def __init__(self):
-        self.initialized = False
+        self.alive = False
 
     async def init(self):
         self.queue = asyncio.Queue()
-        self.initialized = True
 
     async def start(self):
+        self.alive = True
         self.on_start()
-        while True:
+        while self.alive:
             message = await self.queue.get()
             self.on_receive(message)
 

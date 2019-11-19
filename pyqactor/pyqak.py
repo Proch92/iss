@@ -2,6 +2,7 @@ import asyncio
 
 
 current_actor_scope = None
+contexts = []
 
 
 # DECORATORS
@@ -22,3 +23,7 @@ def state(foo):
 
 def run(context):
     asyncio.run(context.run())
+
+
+def add_context(ctx):
+    contexts.append(ctx)
