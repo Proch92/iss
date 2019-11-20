@@ -32,3 +32,5 @@ basicrobot/build_ctxRobot\.gradle
 robotMind/.settings/
 
 robotMind/.project
+
+pyqactor/__pycache__/
