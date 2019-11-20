@@ -10,10 +10,10 @@ class Actor(object):
 
     async def start(self):
         self.alive = True
-        self.on_start()
+        await self.on_start()
         while self.alive:
             message = await self.queue.get()
-            self.on_receive(message)
+            await self.on_receive(message)
 
     def send_message(self, message):
         self.queue.put_nowait(message)

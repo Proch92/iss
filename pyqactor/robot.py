@@ -12,37 +12,39 @@ ctx.actor_scope('robot')
 
 @initial
 @state
-def init(self, t):
+async def init(self, t):
     print('robot | init')
-    self.transition('work', Epsilon)
+    await self.transition('work', Epsilon)
 
 
 @state
-def work(self, t):
+async def work(self, t):
     print('robot | work')
     print('w')  # fire motors
-    self.transition('halt', WhenEvent, 'sonar', lambda s: int(s) < 10)
-    self.transition('toradar', WhenEvent, 'sonar', lambda s: int(s) >= 10)
+    await self.transition('halt', WhenEvent, 'sonar', lambda s: int(s) < 10)
+    await self.transition('toradar', WhenEvent, 'sonar', lambda s: int(s) >= 10)
 
 
 @state
-def halt(self, t):
+async def halt(self, t):
     print('robot | halt')
     print('h')  # stop motors
 
 
 @state
-def toradar(self, t):
+async def toradar(self, t):
     print('robot | toradar')
-    self.request('radar', 'sonar_val_req', t['msg'].payload)
-    self.transition('halt', WhenEvent, 'sonar', lambda s: int(s) < 10)
-    self.transition('handle_response', WhenReply, 'sonar_val_req')
+    await self.dispatch('radar', 'polar', t['msg'].payload)
+    # self.request('radar', 'polar', t['msg'].payload)
+    # self.transition('halt', WhenEvent, 'sonar', lambda s: int(s) < 10)
+    # self.transition('handle_response', WhenReply, 'polarReply')
+    await self.transition('work', Epsilon)
 
 
 @state
-def handle_response(self, t):
+async def handle_response(self, t):
     print('robot | handle_response')
-    self.transition('work', Epsilon)
+    await self.transition('work', Epsilon)
 
 
 ctx.actor_scope('sonar')
@@ -50,11 +52,14 @@ ctx.actor_scope('sonar')
 
 @initial
 @state
-def run(self, t):
-    self.emit('sonar', 20)
-    self.emit('sonar', 20)
-    self.emit('sonar', 20)
-    self.emit('sonar', 10)
+async def run(self, t):
+    await self.emit('sonar', 20)
+    await self.sleep(2)
+    await self.emit('sonar', 40)
+    await self.sleep(2)
+    await self.emit('sonar', 60)
+    await self.sleep(2)
+    await self.emit('sonar', 5)
 
 
-pyqak.run(ctx)
+pyqak.run()

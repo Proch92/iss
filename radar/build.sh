@@ -1,1 +1,1 @@
-gradle -b build_ctx______.gradle distZip
+gradle -b build_ctx.gradle distZip

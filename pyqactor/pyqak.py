@@ -21,8 +21,16 @@ def state(foo):
 
 # FUNCTIONS
 
-def run(context):
-    asyncio.run(context.run())
+def run():
+	asyncio.run(asyncrun())
+
+
+async def asyncrun():
+	tasks = []
+	for context in contexts:
+		tasks.append(asyncio.create_task(context.run()))
+
+	await asyncio.wait(tasks)
 
 
 def add_context(ctx):
