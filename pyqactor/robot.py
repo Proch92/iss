@@ -34,11 +34,11 @@ async def halt(self, t):
 @state
 async def toradar(self, t):
     print('robot | toradar')
-    await self.dispatch('radar', 'polar', t['msg'].payload)
-    # self.request('radar', 'polar', t['msg'].payload)
-    # self.transition('halt', WhenEvent, 'sonar', lambda s: int(s) < 10)
-    # self.transition('handle_response', WhenReply, 'polarReply')
-    await self.transition('work', Epsilon)
+    # await self.dispatch('radar', 'polar', t['msg'].payload)
+    await self.request('radar', 'polar', t['msg'].payload)
+    await self.transition('halt', WhenEvent, 'sonar', lambda s: int(s) < 10)
+    await self.transition('handle_response', WhenReply, 'polarReply')
+    # await self.transition('work', Epsilon)
 
 
 @state

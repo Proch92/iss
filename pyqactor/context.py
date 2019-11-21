@@ -12,15 +12,17 @@ class Context(object):
         self.actors = {}
         pyqak.add_context(self)
 
-    async def run(self):
-        print('STARTING')
+    async def init(self):
+        pass
+        # open tcp server 
 
+    async def run(self):
         for _, actor in self.actors.items():
             await actor.init()
 
         tasks = []
         for name, actor in self.actors.items():
-            tasks.append(asyncio.create_task(actor.start()))
+            tasks.append(actor.start())
 
         await asyncio.wait(tasks)
 
@@ -40,8 +42,8 @@ class Context(object):
     async def emit(self, msg):
         [await ctx.send_event(msg) for ctx in pyqak.contexts]
 
-    def send_event(self, msg):
-        [actor.send_message(msg) for _, actor in self.actors.items()]
+    async def send_event(self, msg):
+        [await actor.send_message(msg) for _, actor in self.actors.items()]
 
 
 class ExternalContext(Context):
@@ -49,8 +51,10 @@ class ExternalContext(Context):
         super().__init__(host, port)
         self.actors = []
 
-    async def run(self):
+    async def init(self):
         self.reader, self.writer = await asyncio.open_connection(self.host, self.port)
+
+    async def run(self):
         while(True):
             data = await self.reader.read(1000)
             data = data.decode()

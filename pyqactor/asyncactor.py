@@ -15,8 +15,11 @@ class Actor(object):
             message = await self.queue.get()
             await self.on_receive(message)
 
-    def send_message(self, message):
+    async def send_message(self, message):
         self.queue.put_nowait(message)
+
+    def die(self):
+        self.alive = False
 
     def on_start(self):
         pass

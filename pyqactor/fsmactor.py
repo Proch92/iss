@@ -29,6 +29,8 @@ class FSMactor(Actor):
 
     async def execute_current_state(self, transition=None):
         await self.states[self.current_state](self, transition)
+        if len(self.transitions) == 0:
+            self.die()
 
     async def dispatch(self, to, _id, payload):
         msg = Message(_id, 'dispatch', self.name, to, payload)
