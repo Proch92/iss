@@ -21,8 +21,8 @@ class Actor(object):
     def die(self):
         self.alive = False
 
-    def on_start(self):
+    async def on_start(self):
         pass
 
-    def on_receive(self, message):
+    async def on_receive(self, message):
         pass
