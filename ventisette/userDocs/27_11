@@ -1,0 +1,18 @@
+REQUISITI:
+il robot ha un sensore 'sonar'.
+il robot deve trasmettere alla console il valore del sonar.
+la console deve essere in grado di leggere i valori del sonar inviati dal robot.
+il robot deve eseguire i comandi (w,s,a,d,h) inviati dalla console
+
+ANALISI REQ:
+ci sono due componenti: robot e console.
+La lettura del sonar fatta dal robot deve essere trasferita alla console.
+i comandi inviati dalla console vengono inviati in dispatch al robot.
+
+ANALISI PROBLEMA:
+entrambi i componenti sono attori qak e fanno parte dello stesso sistema.
+le letture del sonar vengono interpretati come eventi all'interno del sistema.
+la console rimane in ascolto dell'evento "sonar".
+i dati devono essere filtrati per pulire outlier.
+
+il sonar diventa un'entità diversa dal robot 
