@@ -22,20 +22,19 @@ def state(foo):
 # FUNCTIONS
 
 def run():
-	tasks = []
-	asyncio.run(fire_contexts())
+    asyncio.run(fire_contexts())
 
 
 async def fire_contexts():
-	tasks = []
-	for context in contexts:
-		tasks.append(context.init())
-	await asyncio.wait(tasks)
+    tasks = []
+    for context in contexts:
+        tasks.append(context.init())
+    await asyncio.wait(tasks)
 
-	tasks = []
-	for context in contexts:
-		tasks.append(context.run())
-	await asyncio.wait(tasks)
+    tasks = []
+    for context in contexts:
+        tasks.append(context.run())
+    await asyncio.wait(tasks)
 
 
 def add_context(ctx):
