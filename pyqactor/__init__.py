@@ -1,1 +1,9 @@
-__all__ = ['asyncactor', 'context', 'fsmactor', 'messages', 'pyqak', 'robot', 'transitions']
+__all__ = [
+    'asyncactor',
+    'context',
+    'fsmactor',
+    'messages',
+    'pyqak',
+    'robot',
+    'transitions',
+]

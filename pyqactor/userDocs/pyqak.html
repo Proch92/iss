@@ -1,0 +1,320 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <!--
+<link rel="stylesheet" type="text/css" href="../css/issStyle1.css">
+<script type="text/javascript" src="../css/issStyle.js"></script>
+-->
+<style type="text/css">
+<!--
+body
+{
+    margin-left:  30px;
+    margin-right: 30px;
+};
+
+P
+{
+    font-family: Tahoma;
+    font-size: 10pt;
+};
+
+a, a:visited, a:active, a:link, a:hover {
+    text-decoration: underline;
+    color: #545454;
+    background-color: transparent;
+}
+
+a:hover {
+    background-color: #cccccc;
+}
+
+
+hr {
+    clear: both;
+    height: 1px;
+    color: #242424;
+    background-color: transparent;
+}
+
+h1, h2, h3 {
+    color: #242424;
+    clear: left;
+    font: 100% Tahoma, Helvetica, Arial, sans-serif;
+    margin: 10;
+    margin-right: 15px;
+    margin-bottom: 0.5em;
+    padding-top: 0.5em;
+    border-bottom: 1px solid #242424;
+}
+
+h1 {
+    font-size: 150%;
+    background-color: #b2c0ff;
+}
+
+h2 {
+    background-color: #d9fbff;
+    font-size: 110%;
+}
+
+h3 {
+    background-color: #e6ccff;
+    font-size: 80%;
+}
+h4 {
+    background-color: #99ffcc;
+    font-size: 100%;
+    width: 750px;
+}
+#i {
+    color: #ff1010;
+}
+tt{
+    font-family: "Arial";
+    font-size: 80%;
+    color: #006600;
+}
+em{
+    font-family: "Arial";
+    font-size: 80%;
+    font-weight: bold;
+    border-style:solid;
+    border-color: #ccffff;
+    color: #0033cc;
+}
+bc{
+    font-family: "Arial";
+    font-size: 80%;
+    font-weight: bold;
+    color: #990000;
+    background-color: #fcf8c7;
+}
+k{
+    font-family: "Arial";
+    font-weight: bold;
+    color: #990000;
+     
+}
+ks{
+    font-family: "Arial";
+    font-weight: bold;
+    color: #0000CD  ;
+     
+}
+kc{
+    font-family: "Arial";
+    font-weight: bold;
+    color: #008000  ;
+     
+}
+pre{
+    font-family: "Helvetica";
+    font-size: 60%;
+    background-color: #fcf8c7;
+    border: 1px solid blue;
+}
+code {
+    font-size: 60% !important;
+}
+m{
+    font-family: "Helvetica";
+    line-height: 100%;
+    font-size: 75%;
+}
+div.body{
+    width: 800px;
+    font-size: 18px;
+}    
+div.req{
+    background-color: #d9ffb3;
+    font-size: 18px;
+    width: 700px;
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}       
+div.remark{
+    background-color: #FFFC33;     
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}  
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}         
+    
+  -->
+</style>
+    
+<head>
+    <title>Pyqak</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/themes/prism-coy.min.css" rel="stylesheet" />
+</head>
+    
+<body>
+<!--<div id="top">
+<h1>81614 - LABORATORIO DI SISTEMI SOFTWARE <font size="5"></font> </h1>
+</div>-->
+
+<div class="body">
+<h1>PyQak - Michele Proverbio</h1>
+
+<h2>Syntax example</h2>
+<pre><code class="language-python">
+import pyqak
+from pyqak import *
+from transitions import *
+from context import Context, ExternalContext
+
+ctx_radar = ExternalContext('localhost', 8020)
+ctx_radar.external_actor('radar')
+
+ctx = Context('localhost', 8030)
+ctx.actor_scope('robot')
+
+@initial
+@state
+async def init(self, t):
+    print('robot | init')
+    await self.transition('work', Epsilon)
+
+@state
+async def work(self, t):
+    print('robot | work')
+    print('w')  # fire motors
+    await self.transition('halt', WhenEvent, 'sonar', lambda s: int(s) < 10)
+    await self.transition('toradar', WhenEvent, 'sonar', lambda s: int(s) >= 10)
+
+@state
+async def halt(self, t):
+    print('robot | halt')
+    print('h')  # stop motors
+
+@state
+async def toradar(self, t):
+    print('robot | toradar')
+    await self.request('radar', 'polar', t['msg'].payload)
+    await self.transition('halt', WhenEvent, 'sonar', lambda s: int(s) < 10)
+    await self.transition('handle_response', WhenReply, 'polarReply')
+
+@state
+async def handle_response(self, t):
+    print('robot | handle_response')
+    await self.transition('work', Epsilon)
+
+pyqak.run()
+</code></pre>
+
+<h2>Kotlin coroutines vs Python Asyncio</h2>
+<table>
+    <tr>
+        <td>
+            <m>
+                <h3>launching jobs</h3>
+                <h4>Kotlin</h4>
+                explicit context.
+            </m>
+            <pre>
+fun launcher(){
+    <em>GlobalScope.launch</em>{coroutine()}
+}
+            </pre>
+            <m>
+                implicit context. <br>
+                ie. inside a suspend function declaration or a runBlocking wrapper.
+            </m>
+            <pre>
+fun launcher() = runBlocking {
+    <em>launch</em>{coroutine()}
+}
+            </pre>
+            <m>
+                <h4>Python</h4>
+                explicit context.
+            </m>
+            <pre>
+def launcher():
+    <em>asyncio.launch</em>(coroutine())
+            </pre>
+            <m>
+                implicit context. <br>
+                ie. inside an async function declaration
+            </m>
+            <pre>
+async def launcher():
+    <em>await</em> coroutine()
+            </pre>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <m>
+                <h3>suspendable routines</h3>
+                <h4>Kotlin</h4>
+            </m>
+            <pre>
+<em>suspend</em> fun ioBoundFun(){
+    delay(1000)
+    println("IO operation | Done")
+}
+            </pre>
+            <m>
+                <h4>Python</h4>
+            </m>
+            <pre>
+<em>async</em> def ioBoundFun():
+    await sleep(1)
+    print("IO operation | Done")
+            </pre>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <m>
+                <h3>async jobs/tasks and promises/futures</h3>
+                <h4>Kotlin</h4>
+                GlobalScope.async() is a builder of jobs. It returns a promise that can be used to "join" the async execution.
+            </m>
+            <pre>
+suspend fun activate(){
+    val job1 = <em>GlobalScope.async</em>{
+        ioBoundFun()
+    }
+    val job2 = <em>GlobalScope.async</em>{
+        ioBoundFun()
+    }
+    if(! job1.isCompleted || ! job2.isCompleted)
+        println("Waiting for completion")
+    val end1 = <em>job1.await()</em>
+    val end2 = <em>job2.await()</em>
+    println("All jobs done")
+}
+            </pre>
+            <m>
+                <h4>Python</h4>
+                asyncio.create_task() is the counter part of GlobalScope.async() with the same properties.
+            </m>
+            <pre>
+async def activate():
+    task0 = <em>asyncio.create_task</em>(ioBoundFun())
+    task1 = <em>asyncio.create_task</em>(ioBoundFun())
+    <em>await</em> task0
+    <em>await</em> task1
+            </pre>
+        </td>
+    </tr>
+</table>
+
+
+
+
+<div style="background-color:rgba(86, 56, 253, 0.9); width:60%;text-align:left;font-size:small;color:white;margin-top:15px">
+By Michele Proverbio email: michele.proverbio@studio.unibo.it  
+<img src="./mp.jpg" alt="Michele Proverbio" width="15%" height="15%">
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.17.1/plugins/autoloader/prism-autoloader.min.js"></script>
+</body>
+</html>
