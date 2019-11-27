@@ -1,0 +1,28 @@
+System radarqak
+
+Request polar : polar(D)
+Reply polarReply : polarReplay(X)
+
+Context ctx ip [ host= "localhost" port= 8020 ]
+
+QActor radar context ctx {
+	State s0 initial {
+		println("init")
+		run radarPojo.radarSupport.setUpRadarGui()
+	}
+	Goto idle
+	
+	State idle {
+		println("idle")
+	}
+	Transition t0 whenRequest polar -> handlePolar
+	
+	State handlePolar {
+		println("handlePolar")
+		onMsg(polar : polar(D)) {
+			run radarPojo.radarSupport.update(payloadArg(0), "0")
+			replyTo polar with polarReply : polarReply(X)
+		}
+	}
+	Goto idle
+}

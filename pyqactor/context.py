@@ -12,15 +12,27 @@ class Context(object):
         self.actors = {}
         pyqak.add_context(self)
 
-    async def run(self):
-        print('STARTING')
+    async def init(self):
+        self.server = await asyncio.start_server(self.handle_conn, self.host, self.port)
+        await self.server.start_serving()
 
+    async def handle_conn(self, reader, writer):
+        data = await reader.readline()
+        data = data.decode()
+        msg = messages.parse_message(data)
+        if msg:
+            if msg._type == 'event':
+                await self.send_event(msg)
+            elif msg._type in ['dispatch', 'request', 'reply']:
+                await self.send_message(msg)
+
+    async def run(self):
         for _, actor in self.actors.items():
             await actor.init()
 
         tasks = []
         for name, actor in self.actors.items():
-            tasks.append(asyncio.create_task(actor.start()))
+            tasks.append(actor.start())
 
         await asyncio.wait(tasks)
 
@@ -29,30 +41,43 @@ class Context(object):
         self.actors[name] = newactor
         pyqak.current_actor_scope = newactor
 
-    def send_message(self, msg):
+    async def send_message(self, msg):
         if msg._to in self.actors:
-            self.actors[msg._to].send_message(msg)
+            await self.actors[msg._to].send_message(msg)
         else:
             for ctx in pyqak.contexts:
                 if msg._to in ctx.actors:
-                    ctx.send_message(msg)
+                    await ctx.send_message(msg)
 
-    def emit(self, msg):
-        [ctx.send_event(msg) for ctx in pyqak.contexts]
+    async def emit(self, msg):
+        [await ctx.send_event(msg) for ctx in pyqak.contexts]
 
-    def send_event(self, msg):
-        [actor.send_message(msg) for _, actor in self.actors.items()]
+    async def send_event(self, msg):
+        [await actor.send_message(msg) for _, actor in self.actors.items()]
 
 
 class ExternalContext(Context):
     def __init__(self, host, port):
         super().__init__(host, port)
         self.actors = []
-        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.connect((self.host, self.port))
+
+    async def init(self):
+        self.reader, self.writer = await asyncio.open_connection(self.host, self.port)
 
     async def run(self):
-        print('cannot run an external context')
+        while(True):
+            data = await self.reader.readline()
+            data = data.decode()
+            msg = messages.parse_message(data)
+            if msg:
+                print('received ', str(msg))
+                if msg._type == 'reply':
+                    for ctx in pyqak.contexts:
+                        if msg._to in ctx.actors:
+                            await ctx.send_message(msg)
+
+        self.writer.close()
+        await self.writer.wait_closed()
 
     def actor_scope(self, name):
         print('cannot open an actor scope for an external context')
@@ -60,14 +85,16 @@ class ExternalContext(Context):
     def external_actor(self, name):
         self.actors.append(name)
 
-    def send_message(self, msg):
+    async def send_message(self, msg):
         encoded = messages.natali_encode(msg)
         encoded = str(encoded) + '\n'
         encoded = encoded.encode()
-        self.sock.send(encoded)
+        self.writer.write(encoded)
+        await self.writer.drain()
 
-    def send_event(self, msg):
+    async def send_event(self, msg):
         encoded = messages.natali_encode(msg)
         encoded = str(encoded) + '\n'
         encoded = encoded.encode()
-        self.sock.send(encoded)
+        self.writer.write(encoded)
+        await self.writer.drain()

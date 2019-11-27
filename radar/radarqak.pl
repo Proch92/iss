@@ -1,5 +1,5 @@
 %====================================================================================
-% robotmind description   
+% radarqak description   
 %====================================================================================
-context(ctxmind, "localhost",  "TCP", "8023").
- qactor( basicrobot, ctxmind, "it.unibo.basicrobot.Basicrobot").
+context(ctx, "localhost",  "TCP", "8020").
+ qactor( radar, ctx, "it.unibo.radar.Radar").
