@@ -3,10 +3,10 @@ from pyqak import *
 from transitions import *
 from context import Context, ExternalContext
 
-ctx_radar = ExternalContext('localhost', 8020)
+ctx_radar = ExternalContext('radar-ctx', 'localhost', 8020)
 ctx_radar.external_actor('radar')
 
-ctx = Context('localhost', 8030)
+ctx = Context('ctx-robot', 'localhost', 8030)
 ctx.actor_scope('robot')
 
 

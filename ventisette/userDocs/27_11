@@ -15,4 +15,4 @@ le letture del sonar vengono interpretati come eventi all'interno del sistema.
 la console rimane in ascolto dell'evento "sonar".
 i dati devono essere filtrati per pulire outlier.
 
-il sonar diventa un'entità diversa dal robot 
+il sonar è un emettitore di eventi e non può essere rappresentato da un attore che ha un comportamento message driven. non è corretto mettere all'interno del robot un while(true) per leggere il sonar.

@@ -20,6 +20,7 @@ import alice.tuprolog.*
         fun initClientConn(actor:ActorBasic, hostName: String = "localhost", portStr: String = "8999"  ) {
             port  = Integer.parseInt(portStr)
             try {
+				//System.setProperty("tcpLowTrace", "set")		//enable tracing of unibonoawtsupport
                 val clientSocket = Socket(hostName, port)
                 println("		--- clientWenvObjTcp |  CONNECTION DONE")
                 inFromServer = BufferedReader(InputStreamReader(clientSocket.getInputStream()))
