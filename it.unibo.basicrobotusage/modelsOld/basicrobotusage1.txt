@@ -1,0 +1,82 @@
+/*
+ * ================================================================
+ * This example shows that
+ * the caller of an External QActor can perceive events emitted
+ * by (any actor working in the context of ) the External QActor.
+ * These events can be perceived also by any QActor working
+ * in the context of the caller.
+ * ================================================================
+ */
+System  basicrobotusage
+
+Dispatch cmd       : cmd(X)
+Event  obstacle    : obstacle( DISTANCE )
+Event  alarm       : alarm(V)  
+
+Context ctxRobotUsage  ip [ host= "localhost"      port= 8048 ]
+Context ctxBasicRobot  ip [ host= "192.168.137.2"  port= 8018 ] 
+//Context ctxSmartRobot  ip [ host= "192.168.1.6"   port= 8020 ] 
+ 
+ExternalQActor basicrobot context ctxBasicRobot
+//ExternalQActor smartrobot context ctxSmartRobot
+
+QActor robotusage context ctxRobotUsage{
+["var NumOfStep = 0"]
+	State s0 initial{ 
+		println("robotusage start")
+	}
+	Goto boundary
+
+	State boundary{
+ 		forward basicrobot -m cmd : cmd( w )	 	
+	}
+ 	Transition t0 
+		whenEvent obstacle -> rotate
+ 	 
+ 	 State rotate{
+ 	 	["NumOfStep = NumOfStep + 1"]
+ 		forward basicrobot -m cmd : cmd( a )	
+ 		delay 1000
+ 		forward basicrobot -m cmd : cmd( h ) 	
+	 }
+	 Goto boundary if "(NumOfStep < 4)" else work
+ 
+ 	State work{
+//		delay 1000   
+//		forward basicrobot -m cmd : cmd( a )
+//		delay 1000  
+//		forward basicrobot -m cmd : cmd( d )
+//		delay 1000  
+//		println("robotusage send w ")
+//		forward basicrobot -m cmd : cmd( w )
+//		delay 1000  
+//		forward basicrobot -m cmd : cmd( h )
+//		delay 1000  
+  	}
+	Transition t0 
+		whenEvent obstacle -> handleObstacle
+			
+	State handleObstacle{
+		printCurrentMessage 
+		println("robotusage handleObstacle ")
+	}
+ }
+ 
+ 
+ QActor callerfriend context ctxRobotUsage{
+	State s0 initial{ 
+		println("callerfriend start")
+	}
+	Transition t0 
+		whenEvent obstacle -> handleObstacle
+ 	
+	State handleObstacle{
+		printCurrentMessage
+		println("callerfriend handleObstacle ")
+		//emit alarm : alarm(obstacle)
+	}
+ 	Transition t0 
+		whenEvent obstacle -> handleObstacle
+ }
+
+ 

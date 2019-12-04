@@ -1,0 +1,150 @@
+/*
+ * ================================================================
+ * This file includes A TEXTUAL REPRESENTATION of A MODEL 
+ * of the required software system expressed using 
+ * the language (metamodel) qak as the result of PROJECT PHASE.
+ * REQUIREMENTS in Lab3_2020.html
+ * ================================================================
+ */ 
+System smartrobot  
+
+mqttBroker "localhost" : 1883  
+ 
+Dispatch cmd       : cmd(X)
+
+Dispatch  step     :  step(DURATION)	//sent by the CoAP resource
+Request  step      :  step(DURATION)	//sent by an external user
+Reply    stepdone  :  stepdone(V)  
+Reply    stepfail  :  stepfail(DURATION, CAUSE)
+Dispatch stop      :  stop(V)   		//sent by an external user to block the step
+
+
+Event    boundary  : boundary(V)
+
+Event  obstacle    : obstacle( DISTANCE )  
+Event  alarm       : alarm(V)           
+  
+Context ctxSmartRobot ip [ host= "localhost"     port= 8020 ] +mqtt  
+Context ctxBasicRobot ip [ host= "127.0.0.1"   port= 8018 ] +mqtt      
+
+ExternalQActor basicrobot context ctxBasicRobot   
+ 
+/*  
+ * ---------------------------------------------------------------------------
+ * smartrobot
+ * ACTIVATES A CoAP resource
+ * ACCEPTS COMMANDS from a console  (see SmartRobotUsage.ipynb)
+ * ACCEPTS COMMANDS from Copper 
+ * UPDATES the resource robot/pos at each step and rotation
+ * ---------------------------------------------------------------------------
+ */ 
+ 
+QActor smartrobot context ctxSmartRobot{
+[" 
+var StepTime = 0L 
+var Duration = 0 
+var WithResource = true
+var DoStepAnswer = false	//avoid to send answer after a step
+"]  	
+	State s0 initial{
+		run kotlincode.resourceObserver.init("coap://localhost:5683","robot/pos") 
+		forward basicrobot -m cmd : cmd( a ) 
+		delay 1000
+		forward basicrobot -m cmd : cmd( d )
+		delay 1000
+		forward basicrobot -m cmd : cmd( h )
+		//
+		println("smartrobot started")
+		
+	}
+	Goto activateResource  if "WithResource" else work
+	
+	State activateResource{
+		run kotlincode.resServer.init(myself)
+		run kotlincode.coapSupport.init("coap://localhost:5683")
+		delay 1000 
+		run kotlincode.resourceObserver.init("coap://localhost:5683","robot/pos")
+		//run kotlincode.coapSupport.readResource(myself, "robot/pos") 
+		//run kotlincode.coapSupport.readResource(myself, "robot/sonar")
+	}
+	Goto work
+	
+	State work{	}
+	Transition s0 
+ 			whenMsg cmd        -> handleCmd
+			whenMsg step       -> doStepNoAnswer
+			whenRequest step   -> doStepWithAnswer
+			whenMsg stop       -> handleStopNotExpected		 
+ 		    whenEvent obstacle -> ignoreObstacle 
+  	 
+ 	State handleStopNotExpected{
+ 		println("smartrobot | WARNING: the stop command should not be sent here")
+ 	}
+ 	Goto work
+ 	
+ 	State ignoreObstacle{ println("smartrobot | IGNORE obstacle event")
+ 	}Goto work
+ 
+ /*
+  * REQUIREMENT req-cmd: redirection
+  */
+	State handleCmd {
+		printCurrentMessage 
+		onMsg( cmd : cmd(X) ){ 
+			["var Move = payloadArg(0)"]
+			forward basicrobot -m cmd : cmd( $Move )
+			if "( WithResource )" {
+				run kotlincode.coapSupport.updateResource(myself, "robot/pos", "u$Move")
+			}
+		}
+	} Goto work 
+
+ /*
+  * ---------------------------------------------------------------------------
+  * REQUIREMENT req-step 
+  * ---------------------------------------------------------------------------
+  */ 
+  
+    State doStepNoAnswer{    
+    	onMsg( step : step( T ) ){
+    	[" StepTime = payloadArg(0).toLong(); DoStepAnswer = false "] }}Goto doStep
+    State doStepWithAnswer{  
+    	onMsg( step : step( T ) ){
+    	["StepTime = payloadArg(0).toLong(); DoStepAnswer = true "]   }}Goto doStep
+     
+	State doStep{  
+ 		println("smartrobot | doStep StepTime=$StepTime ")		 
+ 		[" startTimer()"]	//REQUIREMENT req-step-time
+		forward basicrobot -m cmd : cmd( w )  //ATTEMPT TO MOVE ...
+ 	}  
+	Transition t0 
+		whenTimeVar StepTime  -> endStep	
+		whenMsg stop          -> stepStop		  
+		whenEvent obstacle    -> stepFail
+ 	
+	State endStep{  //REQUIREMENT  req-step-info
+		forward basicrobot -m cmd : cmd( h ) 
+		println("smartrobot | step DONE")
+		if "WithResource"{run kotlincode.coapSupport.updateResource(myself, "robot/pos", "up")}   
+		if "DoStepAnswer"{ replyTo step with stepdone : stepdone(ok) }
+  	}
+	Goto work
+	 
+	State stepStop{ //REQUIREMENT req-stop, req-step-time, req-step-info
+		["Duration=getDuration()"]  //getDuration: built-in (with ref. to startTimer)
+		forward basicrobot -m cmd : cmd( h ) 
+		if "DoStepAnswer"{ replyTo step with stepfail : stepfail($Duration, stopped) }
+		println("smartrobot | stepStop Duration=$Duration ")
+ 	}
+	Goto work  	 
+
+	State stepFail{ //REQUIREMENT req-step-time, req-step-info
+		["Duration=getDuration()"]  //getDuration(): built-in (with ref. to startTimer)
+		replyTo step with stepfail : stepfail($Duration, obstacle)
+		if "DoStepAnswer"{ println("smartrobot | stepFail Duration=$Duration ") }
+  	}
+	Goto work  	
+
+}
+
+ 
