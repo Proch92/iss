@@ -6,7 +6,8 @@ import socket
 
 
 class Context(object):
-    def __init__(self, host, port):
+    def __init__(self, name, host, port):
+        self.name = name
         self.host = host
         self.port = port
         self.actors = {}
@@ -57,8 +58,8 @@ class Context(object):
 
 
 class ExternalContext(Context):
-    def __init__(self, host, port):
-        super().__init__(host, port)
+    def __init__(self, name, host, port):
+        super().__init__(name, host, port)
         self.actors = []
 
     async def init(self):

@@ -1,0 +1,67 @@
+System ventisette
+
+Dispatch cmd : cmd(X)
+Event sonar : sonar(D)
+
+Context ctxRobot ip [ host= "192.168.43.229" port= 8020 ]
+Context ctxConsole ip [ host= "192.168.43.184" port= 8030 ]
+
+QActor robot context ctxRobot {
+	State init initial {
+		println("init")
+	}
+	Goto idle
+	
+	State idle {
+		println("idle")
+	}
+	Transition tmsg
+		whenMsg cmd -> handleCmd
+		whenEvent sonar -> handleSonar
+	
+	State handleCmd {
+		println("handleCmd")
+		onMsg(cmd : cmd(X)) {
+			println("command ${payloadArg(0)}")
+		}
+	}
+	Goto idle
+	
+	State handleSonar {
+		println("handleSonar")
+		onMsg(sonar : sonar(D)) {
+			println("sonar ${payloadArg(0)}")
+		}
+	}
+	Goto idle
+}
+
+QActor console context ctxConsole {
+	State init initial {
+		println("init")
+	}
+	Goto idle
+	
+	State idle {
+		println("idle")
+	}
+	Transition tcmd
+		whenMsg cmd -> handleCmd
+		whenEvent sonar -> handleSonar
+	
+	State handleCmd {
+		println("handleCmd")
+		onMsg(cmd : cmd(X)) {
+			forward robot -m cmd : cmd($payloadArg(0))
+		}
+	}
+	Goto idle
+	
+	State handleSonar {
+		println("handleSonar")
+		onMsg(sonar : sonar(D)) {
+			println("${payloadArg(0)}")
+		}
+	}
+	Goto idle
+}

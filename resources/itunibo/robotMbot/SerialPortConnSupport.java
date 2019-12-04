@@ -32,7 +32,7 @@ private String curString = "";
 	@Override
 	public void sendALine(String msg) throws Exception {
 		//msg = msg+"\n";
-		System.out.println("SerialPortConnSupport sendALine ... " + msg);
+		//System.out.println("SerialPortConnSupport sendALine ... " + msg);
   		serialPort.writeBytes(msg.getBytes());
   		 
  //		System.out.println("SerialPortConnSupport has sent   " + msg);

@@ -1,5 +1,6 @@
 %====================================================================================
-% basicrobot description   
+% sonarsource description   
 %====================================================================================
-context(ctxbasicrobot, "localhost",  "TCP", "8020").
- qactor( basicrobot, ctxbasicrobot, "it.unibo.basicrobot.Basicrobot").
+mqttBroker("192.168.43.229", "1883").
+context(ctxlocal, "localhost",  "MQTT", "0").
+ qactor( source, ctxlocal, "it.unibo.source.Source").

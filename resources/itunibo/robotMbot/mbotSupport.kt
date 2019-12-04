@@ -1,29 +1,36 @@
 package itunibo.robotMbot
+/*
+ -------------------------------------------------------------------------------------------------
+ A factory that creates the support for the nano robot
+ -------------------------------------------------------------------------------------------------
+ */
+
 import it.unibo.kactor.ActorBasic
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import it.unibo.kactor.ActorBasicFsm
 import it.unibo.kactor.MsgUtil
+import itunibo.robot.rx.ApplActorDataStream
 
 object mbotSupport{
 	lateinit var owner   : ActorBasic
  	lateinit var conn    : SerialPortConnSupport
 	var dataSonar        : Int = 0 ; //Double = 0.0
  			
-	fun create( owner: ActorBasic, port : String  ){
+	fun create( owner: ActorBasic, port : String   ){
 		this.owner = owner
-		initConn( port  )
+		initConn( port   )
 	}
 	
-	private fun initConn( port : String ){
+	private fun initConn( port : String ){ 
 		try {
-			println("mbotSupport initConn starts port=$port")
+			//println("   	%%% mbotSupport | initConn starts port=$port")
 			val serialConn = JSSCSerialComm()
 			conn = serialConn.connect(port)	//returns a SerialPortConnSupport
-			println("mbotSupport initConn conn= $conn")						
- 			robotDataSourceArduino("robotDataSourceArduino", owner,   conn)
+			println("   	%%% mbotSupport |  initConn port=$port conn= $conn")						
+ 			robotDataSourceArduino("robotDataSourceArduino", owner,   conn )
 		}catch(  e : Exception) {
-			println("mbotSupport ERROR ${e }"   );
+			println("   	%%% mbotSupport |  ERROR ${e }"   );
 		}		
 	}
 	
@@ -33,7 +40,7 @@ object mbotSupport{
  	  by the Python application robotCmdExec that exploits GY521
     */
 	fun  move( cmd : String ){
-		//println("mbotSupport move cmd=$cmd conn=$conn")
+		//println("  	%%% mbotSupport | move cmd=$cmd ")
 		when( cmd ){
 			"msg(w)", "w" -> conn.sendALine("w")
 			"msg(s)", "s" -> conn.sendALine("s")
@@ -44,7 +51,7 @@ object mbotSupport{
 			"msg(z)", "z" -> sendToPython("z")	//conn.sendALine("z")
 			"msg(x)", "x" -> sendToPython("x")	//conn.sendALine("x")
 			"msg(h)", "h" -> conn.sendALine("h")
-			else -> println("mbotSupport command $cmd unknown")
+			else -> println("   	%%% mbotSupport | command $cmd unknown")
 		}
 		
 	}
