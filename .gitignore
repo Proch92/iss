@@ -2,6 +2,7 @@ bin
 bin/default
 .metadata
 build
+.pyenv/
 
 #node
 nodeCode/frontend/node_modules/
