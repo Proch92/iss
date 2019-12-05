@@ -2,49 +2,31 @@ from fsmactor import FSMactor
 import pyqak
 import asyncio
 import messages
-import paho.mqtt.client as mqtt
+# import paho.mqtt.client as mqtt
 
 
 class Context(object):
-    def __init__(self, name, host, port, mqtt=None, mqtt_port=1883):
-        self.mqtt = mqtt
-        self.mqtt_port = mqtt_port
+    def __init__(self, name, host, port):
         self.name = name
         self.host = host
         self.port = port
         self.actors = {}
         pyqak.add_context(self)
 
-    def on_mqtt_connect(self, client, userdata, flags, rc):
-        print(f"Connected with result code {rc}")
-        client.subscribe("unibo/qak/events")
-        for actor in self.actors:
-            client.subscribe(f"unibo/qak/{actor}")
-
-    def on_mqtt_message(self, client, userdata, msg):
-        msg = messages.parse_message(msg.payload)
-        for ctx in pyqak.contexts:
-            if msg._to in ctx.actors:
-                await ctx.send_message(msg)
-
     async def init(self):
         self.server = await asyncio.start_server(self.handle_conn, self.host, self.port)
         await self.server.start_serving()
-        if self.mqtt:
-            client = mqtt.Client()
-            client.on_connect = self.on_mqtt_connect
-            client.on_message = self.on_mqtt_message
-            client.connect(self.mqtt, self.mqtt_port, 60)
 
     async def handle_conn(self, reader, writer):
-        data = await reader.readline()
-        data = data.decode()
-        msg = messages.parse_message(data)
-        if msg:
-            if msg._type == 'event':
-                await self.send_event(msg)
-            elif msg._type in ['dispatch', 'request', 'reply']:
-                await self.send_message(msg)
+        while True:
+            data = await reader.readline()
+            data = data.decode()
+            msg = messages.parse_message(data)
+            if msg:
+                if msg._type == 'event':
+                    await self.send_event(msg)
+                elif msg._type in ['dispatch', 'request', 'reply']:
+                    await self.send_message(msg)
 
     async def run(self):
         for _, actor in self.actors.items():

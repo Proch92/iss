@@ -3,6 +3,7 @@ bin/default
 .metadata
 build
 .pyenv/
+.py37/
 
 #node
 nodeCode/frontend/node_modules/
@@ -35,3 +36,5 @@ robotMind/.settings/
 robotMind/.project
 
 pyqactor/__pycache__/
+
+py_code/pyqak/__pycache__/

@@ -23,7 +23,7 @@ async def work(self, t):
 @state
 async def handle(self, t):
     print('robot | handle_response')
-    print(t.msg)
+    print(t['msg'])
     await self.transition('work', Epsilon)
 
 

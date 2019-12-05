@@ -1,7 +1,6 @@
 %====================================================================================
 % sonarsource description   
 %====================================================================================
-context(ctxtest, "localhost",  "TCP", "8020").
-context(ctxpython, "127.0.0.1",  "TCP", "8019").
- qactor( py, ctxpython, "external").
-  qactor( source, ctxtest, "it.unibo.source.Source").
+mqttBroker("192.168.43.229", "1883").
+context(ctxlocal, "localhost",  "MQTT", "8020").
+ qactor( source, ctxlocal, "it.unibo.source.Source").

@@ -18,7 +18,9 @@ class Source ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 		return { //this:ActionBasciFsm
 				state("init") { //this:State
 					action { //it:State
-						forward("cmd", "cmd(X)" ,"robot" ) 
+						forward("cmd", "cmd(h)" ,"robot" ) 
+						delay(500) 
+						forward("cmd", "cmd(h)" ,"robot" ) 
 					}
 				}	 
 			}
