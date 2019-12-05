@@ -1,0 +1,19 @@
+System sprint1req
+
+Context ctxBasicRobot ip [ host= "192.168.43.171" port= 8018 ] //+mqtt 
+
+Context ctxRobotAppl0 ip [ host= "localhost" port= 8033 ]
+
+//Context ctxRadarGui ip [ host= "localhost"   port= 8038 ] //+mqtt
+
+ExternalQActor basicrobot context ctxBasicRobot
+//ExternalQActor radargui context ctxRadarGui
+
+
+QActor robotappl0 context ctxRobotAppl0{
+	State s0 initial{
+		println("robotappl0 START")
+		//REQ-MOVE: an human user can move the robot by using the userconsole.
+		//REQ-SHOW-DATA: the robot-sonar data should be properly shown by the radarGui.
+	}
+}

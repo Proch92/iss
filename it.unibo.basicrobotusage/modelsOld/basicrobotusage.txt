@@ -1,0 +1,67 @@
+/*
+ * ================================================================
+ * This file includes A TEXTUAL REPRESENTATION of A MODEL 
+ * ================================================================
+ */
+System basicrobotusage
+
+Dispatch cmd          : cmd(X)
+
+Event  obstacle       : obstacle( DISTANCE )
+Event  temperature    : temperature( VALUE )  
+Event  help           : help( REASON )	//REASON :  reduce_temperature | ...
+  
+Context ctxRobotUsage      ip [ host= "localhost"     port= 8048 ]
+Context ctxBasicRobot      ip [ host= "192.168.1.6"   port= 8018 ]
+ 
+ExternalQActor basicrobot context ctxBasicRobot
+
+/* 
+ * This actor is not part of the system.
+ * It is introduced to make testing easier.
+ */
+
+QActor robotusage context ctxRobotUsage{
+	State s0 initial{ 
+		println("robotusage start")
+	}
+	Goto simulateTemperature
+	
+	
+	State simulateTemperature{
+		delay 1000  
+		println("robotusage send w")
+		forward basicrobot -m cmd : cmd( w )
+		delay 1500
+		println("robotusage simulates temperature(42)")
+		emit temperature : temperature(42)		
+	}
+	Transition t0 
+		whenEvent obstacle -> handleObstacle
+		whenEvent help     -> handleHelp
+		
+	State handleHelp{
+		println("robotusage handles help (from basicrobot)")
+		printCurrentMessage
+		onMsg( help : help( reduce_temperature ) ){
+			delay 1500
+			println("robotusage simulates temperature(25)")
+			emit temperature : temperature(25)
+		}
+		delay 1500			
+		println("robotusage move the robot")
+		forward basicrobot -m cmd : cmd(a)
+		delay 600
+		forward basicrobot -m cmd : cmd(d)
+		delay 600 
+		forward basicrobot -m cmd : cmd(h) 
+	}
+	
+	State handleObstacle{
+		println("robotusage handleObstacle ... but looses help???")
+	}
+	Transition t0 
+		whenEvent help -> handleHelp
+}
+
+ 
