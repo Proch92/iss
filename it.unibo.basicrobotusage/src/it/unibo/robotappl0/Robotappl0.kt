@@ -15,6 +15,9 @@ class Robotappl0 ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		
+		var StepTime=0L
+		var StepDuration=0L
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -26,14 +29,59 @@ class Robotappl0 ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 					}
 					 transition(edgeName="t00",targetState="handleObstacle",cond=whenEvent("obstacle"))
+					transition(edgeName="t01",targetState="doUserCmd",cond=whenDispatch("cmd"))
+					transition(edgeName="t02",targetState="doStep",cond=whenDispatch("step"))
+				}	 
+				state("doUserCmd") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("cmd(X)"), Term.createTerm("cmd(M)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								emit("userCmd", "userCmd(${payloadArg(0)})" ) 
+						}
+					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
 				}	 
 				state("handleObstacle") { //this:State
 					action { //it:State
 						emit("userCmd", "userCmd(a)" ) 
-						delay(500) 
-						emit("userCmd", "userCmd(a)" ) 
 					}
 					 transition( edgeName="goto",targetState="work", cond=doswitch() )
+				}	 
+				state("doStep") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("step(T)"), Term.createTerm("step(T)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												StepDuration = 0L
+												StepTime = payloadArg(0).toLong()
+												startTimer()
+								emit("userCmd", "userCmd(w)" ) 
+						}
+						stateTimer = TimerActor("timer_doStep", 
+							scope, context!!, "local_tout_robotappl0_doStep", StepTime )
+					}
+					 transition(edgeName="t03",targetState="endStep",cond=whenTimeout("local_tout_robotappl0_doStep"))   
+					transition(edgeName="t04",targetState="abortTheStep",cond=whenEvent("obstacle"))
+					transition(edgeName="t05",targetState="abortTheStep",cond=whenDispatch("stop"))
+				}	 
+				state("endStep") { //this:State
+					action { //it:State
+						emit("userCmd", "userCmd(h)" ) 
+						StepDuration = 0L
+						println("robotappl0 | step DONE $StepTime")
+					}
+					 transition( edgeName="goto",targetState="work", cond=doswitch() )
+				}	 
+				state("abortTheStep") { //this:State
+					action { //it:State
+						emit("userCmd", "userCmd(h)" ) 
+						StepDuration = getDuration().toLong()
+						println("robotappl0 | abortTheStep $StepDuration")
+						emit("userCmd", "userCmd(s)" ) 
+						stateTimer = TimerActor("timer_abortTheStep", 
+							scope, context!!, "local_tout_robotappl0_abortTheStep", StepDuration )
+					}
+					 transition(edgeName="t06",targetState="endStep",cond=whenTimeout("local_tout_robotappl0_abortTheStep"))   
 				}	 
 			}
 		}

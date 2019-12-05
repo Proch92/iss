@@ -18,11 +18,7 @@ class Source ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 		return { //this:ActionBasciFsm
 				state("init") { //this:State
 					action { //it:State
-						emit("polar", "polar("30","270")" ) 
-						delay(1000) 
-						emit("polar", "polar("60","270")" ) 
-						delay(1000) 
-						emit("polar", "polar("90","270")" ) 
+						forward("cmd", "cmd(X)" ,"robot" ) 
 					}
 				}	 
 			}

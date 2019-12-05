@@ -1,0 +1,14 @@
+System test
+
+Dispatch cmd : cmd(X)
+
+Context ctxTest ip [ host= "localhost" port= 8020 ]
+Context ctxPython ip [ host= "127.0.0.1" port= 8019 ]
+
+ExternalQActor robot context ctxPython
+
+QActor source context ctxTest {
+	State init initial {
+		forward robot -m cmd : cmd(X)
+	}
+}
