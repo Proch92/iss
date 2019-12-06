@@ -2,7 +2,7 @@ from fsmactor import FSMactor
 import pyqak
 import asyncio
 import messages
-# import paho.mqtt.client as mqtt
+from emitter import Emitter
 
 
 class Context(object):
@@ -11,6 +11,7 @@ class Context(object):
         self.host = host
         self.port = port
         self.actors = {}
+        self.emitters = {}
         pyqak.add_context(self)
 
     async def init(self):
@@ -33,8 +34,11 @@ class Context(object):
             await actor.init()
 
         tasks = []
-        for name, actor in self.actors.items():
+        for _, actor in self.actors.items():
             tasks.append(actor.start())
+
+        for _, emitter in self.emitters.items():
+            tasks.append(emitter.start())
 
         await asyncio.wait(tasks)
 
@@ -42,6 +46,9 @@ class Context(object):
         newactor = FSMactor(name, self)
         self.actors[name] = newactor
         pyqak.current_actor_scope = newactor
+
+    def add_emitter(self, msg_id, stream, hertz=10):
+        self.emitters[msg_id] = Emitter(msg_id, stream, hertz, self)
 
     async def send_message(self, msg):
         if msg._to in self.actors:

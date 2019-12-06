@@ -1,4 +1,3 @@
-import time
 import RPi.GPIO as io
 
 
@@ -26,40 +25,16 @@ class Motor():
             return 100
         return power
 
-    def forward(self, power=self.default_power):
+    def forward(self, power=None):
         io.output(self.in1, False)
         io.output(self.in2, True)
-        self.power.ChangeDutyCycle(self._clip_power(power))
+        self.power.ChangeDutyCycle(self._clip_power(power if power else self.default_power))
 
     def stop(self):
         io.output(self.in1, False)
         io.output(self.in2, False)
 
-    def backward(self, power=self.default_power):
+    def backward(self, power=None):
         io.output(self.in1, True)
         io.output(self.in2, False)
-        self.power.ChangeDutyCycle(self._clip_power(power))
-
-
-def main():
-    motorsx = Motor(6, 13, 5)
-    motordx = Motor(19, 26, 20)
-
-    motorsx.forward()
-    time.sleep(2)
-    motorsx.stop()
-    motordx.forward()
-    time.sleep(2)
-    motordx.stop()
-    time.sleep(1)
-    motorsx.backward()
-    motordx.backward()
-    time.sleep(2)
-    motorsx.stop()
-    motordx.stop()
-
-    io.cleanup()
-
-
-if __name__ == '__main__':
-    main()
+        self.power.ChangeDutyCycle(self._clip_power(power if power else self.default_power))
