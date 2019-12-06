@@ -14,7 +14,7 @@ class Motor():
         io.setup(in1, io.OUT)
         io.setup(in2, io.OUT)
         io.setup(enable, io.OUT)
-        self.power = io.PWM(self.enable, 0.5)
+        self.power = io.PWM(self.enable, 250)
         self.power.start(self.default_power)
         self.stop()
 

@@ -1,19 +1,15 @@
-from collections import deque
-from statistics import stdev, mean
-from math import fabs
+from statistics import mean
 
 
-def drop_outliers(stream, window_size=10, stdev_clipping=1.5):
-    fifo_buffer = deque(maxlen=window_size)
+def clip(stream, clip_low=0, clip_high=200):
     for val in stream:
-        if len(fifo_buffer) == window_size:
-            std = stdev(fifo_buffer)
-            mu = mean(fifo_buffer)
-            if fabs(mu - val) <= (std * stdev_clipping):
-                fifo_buffer.append(val)
-                yield val
+        if val < clip_low:
+            clipped = clip_low
+        elif val > clip_high:
+            clipped = clip_high
         else:
-            fifo_buffer.append(val)
+            clipped = val
+        yield clipped
 
 
 def avg_window(stream, window_size=4):

@@ -12,5 +12,5 @@ class Emitter():
     async def start(self):
         for val in self.stream:
             msg = Message(self.msg_id, 'event', self.msg_id, 'nan', val)
-            self.context.emit(msg)
+            await self.context.emit(msg)
             await asyncio.sleep(1 / self.hz)

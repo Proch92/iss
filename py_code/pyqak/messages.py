@@ -1,6 +1,5 @@
 import re
 from copy import deepcopy
-import string
 
 
 class Message(object):

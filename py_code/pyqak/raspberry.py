@@ -4,12 +4,12 @@ from transitions import *
 from context import Context
 import motors
 import sensors
-from generator_utils import drop_outliers, avg_window
+from generator_utils import clip, avg_window
 
-ctx = Context('ctx-raspberry', '192.168.1.2', 8030)
+ctx = Context('ctx-raspberry', '192.168.1.9', 8030)
 
-sonar = sensors.Sensor(17, 27)
-ctx.emitter('sonar', avg_window(drop_outliers(sonar.read())))
+sonar = sensors.Sonar(17, 27)
+ctx.emitter('sonar', avg_window(clip(sonar.stream())))
 
 
 ctx.actor_scope('robot')
@@ -19,8 +19,8 @@ ctx.actor_scope('robot')
 @state
 async def init(self, t):
     print('robot | init')
-    self.motorsx = motors.Motor(6, 13, 5)
-    self.motordx = motors.Motor(19, 26, 20)
+    self.motordx = motors.Motor(13, 6, 5, default_power=50)
+    self.motorsx = motors.Motor(26, 19, 20, default_power=50)
     await self.transition('work', Epsilon)
 
 
@@ -43,11 +43,11 @@ async def handle_cmd(self, t):
         self.motorsx.backward()
         self.motordx.backward()
     elif cmd == 'a':
-        self.motorsx.backward()
-        self.motordx.forward()
+        self.motorsx.backward(power=50)
+        self.motordx.forward(power=60)
     elif cmd == 'd':
-        self.motorsx.forward()
-        self.motordx.backward()
+        self.motorsx.forward(power=60)
+        self.motordx.backward(power=50)
     elif cmd == 'h':
         self.motorsx.stop()
         self.motordx.stop()

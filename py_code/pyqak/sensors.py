@@ -18,19 +18,29 @@ class Sonar():
 
         io.output(trig, False)
 
-    def read(self):
-        io.output(self.trig, True)
-        time.sleep(self.deltaT)
-        io.output(self.trig, False)
+    def stream(self):
+        while True:
+            io.output(self.trig, True)
+            time.sleep(self.deltaT)
+            io.output(self.trig, False)
 
-        t0 = time.time()
-        t1 = time.time()
-
-        while io.input(self.echo) == 0:
             t0 = time.time()
-
-        while io.input(self.echo) == 1:
             t1 = time.time()
 
-        echoT = t1 - t0
-        return echoT * self.s_to_cm
+            tout = time.time()
+            timeout = False
+            while (not timeout) and (io.input(self.echo) == 0):
+                t0 = time.time()
+                if (t0 - tout) > 0.01:  # 170cm
+                    timeout = True
+
+            while (not timeout) and (io.input(self.echo) == 1):
+                t1 = time.time()
+                if (t1 - tout) > 0.01:  # 170cm
+                    timeout = True
+
+            if not timeout:
+                echoT = t1 - t0
+                yield echoT * self.s_to_cm
+            else:
+                yield -1
