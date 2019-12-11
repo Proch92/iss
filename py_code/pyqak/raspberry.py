@@ -6,7 +6,7 @@ import motors
 import sensors
 from generator_utils import clip, avg_window
 
-ctx = Context('ctx-raspberry', '192.168.1.9', 8030)
+ctx = Context('ctx-raspberry', '192.168.1.7', 8030)
 
 sonar = sensors.Sonar(17, 27)
 ctx.emitter('sonar', avg_window(clip(sonar.stream())))
@@ -43,11 +43,17 @@ async def handle_cmd(self, t):
         self.motorsx.backward()
         self.motordx.backward()
     elif cmd == 'a':
-        self.motorsx.backward(power=50)
-        self.motordx.forward(power=60)
+        self.motorsx.backward(power=38)
+        self.motordx.forward(power=52)
+        await self.sleep(0.47)
+        self.motorsx.stop()
+        self.motordx.stop()
     elif cmd == 'd':
-        self.motorsx.forward(power=60)
-        self.motordx.backward(power=50)
+        self.motorsx.forward(power=52)
+        self.motordx.backward(power=38)
+        await self.sleep(0.47)
+        self.motorsx.stop()
+        self.motordx.stop()
     elif cmd == 'h':
         self.motorsx.stop()
         self.motordx.stop()
