@@ -12,6 +12,12 @@ def clip(stream, clip_low=0, clip_high=200):
         yield clipped
 
 
+def discard_malformed(stream):
+    for val in stream:
+        if val >= 0 and val < 10**3:
+            yield clipped
+
+
 def avg_window(stream, window_size=4):
     buff = []
     for val in stream:

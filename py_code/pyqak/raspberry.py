@@ -4,12 +4,12 @@ from transitions import *
 from context import Context
 import motors
 import sensors
-from generator_utils import clip, avg_window
+from generator_utils import clip, avg_window, discard_malformed
 
 ctx = Context('ctx-raspberry', '192.168.1.7', 8030)
 
 sonar = sensors.Sonar(17, 27)
-ctx.emitter('sonar', avg_window(clip(sonar.stream())))
+ctx.emitter('sonar', avg_window(clip(discard_malformed(sonar.stream()))))
 
 
 ctx.actor_scope('robot')
