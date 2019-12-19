@@ -2,37 +2,16 @@
 <projectDescription>
 	<name>it.unibo.smartrobot</name>
 	<comment></comment>
-	<projects/>
-	<natures>
-		<nature>org.eclipse.jdt.core.javanature</nature>
-		<nature>org.jetbrains.kotlin.core.kotlinNature</nature>
-		<nature>org.eclipse.xtext.ui.shared.xtextNature</nature>
-	</natures>
+	<projects>
+	</projects>
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.xtext.ui.shared.xtextBuilder</name>
-			<arguments/>
-		</buildCommand>
-		<buildCommand>
-			<name>org.jetbrains.kotlin.ui.kotlinBuilder</name>
-			<arguments/>
-		</buildCommand>
-		<buildCommand>
-			<name>org.eclipse.jdt.core.javabuilder</name>
-			<arguments/>
+			<arguments>
+			</arguments>
 		</buildCommand>
 	</buildSpec>
-	<linkedResources>
-		<link>
-			<name>kotlin_bin</name>
-			<type>2</type>
-			<locationURI>org.jetbrains.kotlin.core.filesystem:/it.unibo.smartrobot2020/kotlin_bin</locationURI>
-		</link>
-		<link>
-			<name>resources</name>
-			<type>2</type>
-			<location>/home/sauron/dev/iss/resources</location>
-		</link>
-	</linkedResources>
-	<filteredResources/>
+	<natures>
+		<nature>org.eclipse.xtext.ui.shared.xtextNature</nature>
+	</natures>
 </projectDescription>
