@@ -9,7 +9,7 @@ from generator_utils import clip, avg_window, discard_malformed
 ctx = Context('ctx-raspberry', '192.168.1.7', 8030)
 
 sonar = sensors.Sonar(17, 27)
-ctx.emitter('sonar', avg_window(clip(discard_malformed(sonar.stream()))))
+ctx.emitter('obstacle', avg_window(clip(discard_malformed(sonar.stream()))), from_name='sonar')
 
 
 ctx.actor_scope('robot')

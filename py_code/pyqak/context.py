@@ -47,8 +47,10 @@ class Context(object):
         self.actors[name] = newactor
         pyqak.current_actor_scope = newactor
 
-    def emitter(self, msg_id, stream, hertz=10):
-        self.emitters[msg_id] = Emitter(msg_id, stream, hertz, self)
+    def emitter(self, msg_id, stream, hertz=10, from_name='None'):
+        if from_name is None:
+            from_name = msg_id
+        self.emitters[msg_id] = Emitter(msg_id, stream, hertz, self, from_name)
 
     async def send_message(self, msg):
         if msg._to in self.actors:
