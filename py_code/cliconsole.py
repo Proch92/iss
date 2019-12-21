@@ -1,8 +1,9 @@
 import socket
 import sys
 
+name = 'robotmind'
 
-cmd_template = "msg(cmd,dispatch,cliconsole,robot,cmd({}),1)"
+template = "msg({},dispatch,cliconsole,{},{},1)"
 
 
 host = sys.argv[1]
@@ -13,6 +14,11 @@ sock.connect((host, port))
 
 while True:
     cmd = input("cmd> ")
-    message = cmd_template.format(cmd) + '\n'
+    message = ''
+    if cmd in ['w', 'a', 's', 'd', 'h']:
+    	message = template.format('cmd', name, f'cmd({cmd})')
+    else:
+    	message = template.format(cmd.split('(')[0], name, cmd)
+    message = message + '\n'
     print(message)
     sock.sendall(message.encode())

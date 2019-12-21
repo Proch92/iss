@@ -15,14 +15,25 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		var StepTime = 0L;
-		    var Start = 0L;
-			var Elapsed = 0L;
-			var LoopCounter = 0;
+		
+			var StepTime = 0L 
+			var Duration = 0 
+			var WithResource = true
+			var DoStepAnswer = false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("init")
+					}
+					 transition( edgeName="goto",targetState="activateResource", cond=doswitchGuarded({WithResource}) )
+					transition( edgeName="goto",targetState="idle", cond=doswitchGuarded({! WithResource}) )
+				}	 
+				state("activateResource") { //this:State
+					action { //it:State
+						kotlincode.resServer.init(myself)
+						kotlincode.coapSupport.init( "coap://localhost:5683"  )
+						delay(1000) 
+						kotlincode.resourceObserver.init( "coap://localhost:5683", "robot/pos"  )
 					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
@@ -30,81 +41,90 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 					action { //it:State
 						println("idle")
 					}
-					 transition(edgeName="tWork0",targetState="sStep",cond=whenDispatch("step"))
-					transition(edgeName="tWork1",targetState="sHandleCmd",cond=whenDispatch("cmd"))
-					transition(edgeName="tWork2",targetState="sLoop",cond=whenDispatch("loop"))
+					 transition(edgeName="tWork0",targetState="doStepNoAnswer",cond=whenDispatch("step"))
+					transition(edgeName="tWork1",targetState="doStepWithAnswer",cond=whenRequest("step"))
+					transition(edgeName="tWork2",targetState="sHandleCmd",cond=whenDispatch("cmd"))
+					transition(edgeName="tWork3",targetState="sHandleStopUnexpected",cond=whenDispatch("stop"))
+				}	 
+				state("sHandleStopUnexpected") { //this:State
+					action { //it:State
+						println("sHandleStopUnexpected - not expecting stop command outside of step context")
+					}
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
 				state("sHandleCmd") { //this:State
 					action { //it:State
-						println("sHandleCmd")
 						if( checkMsgContent( Term.createTerm("cmd(X)"), Term.createTerm("cmd(X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("cmd", "cmd(${payloadArg(0)})" ,"basicrobot" ) 
+								var Move = payloadArg(0)
+								forward("cmd", "cmd($Move)" ,"robot" ) 
+								if(( WithResource )){ kotlincode.coapSupport.updateResource(myself ,"robot/pos", "u$Move" )
+								 }
 						}
 					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
-				state("sStep") { //this:State
+				state("doStepNoAnswer") { //this:State
 					action { //it:State
-						println("sStep")
-						if( checkMsgContent( Term.createTerm("step(T)"), Term.createTerm("step(T)"), 
+						if( checkMsgContent( Term.createTerm("step(DURATION)"), Term.createTerm("step(T)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								StepTime = payloadArg(0).toLong()
-								Start = System.currentTimeMillis();
-								forward("cmd", "cmd(w)" ,"basicrobot" ) 
+								
+												StepTime = payloadArg(0).toLong();
+												DoStepAnswer = false
 						}
-						stateTimer = TimerActor("timer_sStep", 
-							scope, context!!, "local_tout_robotmind_sStep", StepTime )
 					}
-					 transition(edgeName="tStop3",targetState="sEndStep",cond=whenTimeout("local_tout_robotmind_sStep"))   
-					transition(edgeName="tStop4",targetState="sEndStepFailure",cond=whenDispatch("stop"))
-					transition(edgeName="tStop5",targetState="sEndStepFailure",cond=whenEvent("obstacle"))
+					 transition( edgeName="goto",targetState="doStep", cond=doswitch() )
 				}	 
-				state("sEndStep") { //this:State
+				state("doStepWithAnswer") { //this:State
 					action { //it:State
-						println("sEndStep")
-						forward("cmd", "cmd(h)" ,"basicrobot" ) 
+						if( checkMsgContent( Term.createTerm("step(DURATION)"), Term.createTerm("step(T)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												StepTime = payloadArg(0).toLong();
+												DoStepAnswer = true
+						}
+					}
+					 transition( edgeName="goto",targetState="doStep", cond=doswitch() )
+				}	 
+				state("doStep") { //this:State
+					action { //it:State
+						println("doStep StepTime = $StepTime")
+						startTimer()
+						forward("cmd", "cmd(w)" ,"robot" ) 
+						stateTimer = TimerActor("timer_doStep", 
+							scope, context!!, "local_tout_robotmind_doStep", StepTime )
+					}
+					 transition(edgeName="t04",targetState="endStep",cond=whenTimeout("local_tout_robotmind_doStep"))   
+					transition(edgeName="t05",targetState="stepStop",cond=whenDispatch("stop"))
+					transition(edgeName="t06",targetState="stepFail",cond=whenEvent("obstacle"))
+				}	 
+				state("endStep") { //this:State
+					action { //it:State
+						forward("cmd", "cmd(h)" ,"robot" ) 
+						println("step DONE")
+						if(WithResource){ kotlincode.coapSupport.updateResource(myself ,"robot/pos", "up" )
+						 }
+						if(DoStepAnswer){ answer("step", "stepdone", "stepdone(ok)"   )  
+						 }
 					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
-				state("sEndStepFailure") { //this:State
+				state("stepStop") { //this:State
 					action { //it:State
-						println("sEndStepFailure")
-						val Runtime = System.currentTimeMillis() - Start;
-						println("elapsed time: ${Runtime}")
-						forward("cmd", "cmd(h)" ,"basicrobot" ) 
+						Duration = getDuration()
+						forward("cmd", "cmd(h)" ,"robot" ) 
+						if(DoStepAnswer){ answer("step", "stepfail", "stepfail($Duration,stopped)"   )  
+						 }
+						println("stepStop Duration=$Duration")
 					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
-				state("sLoop") { //this:State
+				state("stepFail") { //this:State
 					action { //it:State
-						println("sLoop")
-						Start = System.currentTimeMillis();
-						forward("cmd", "cmd(w)" ,"basicrobot" ) 
-					}
-					 transition(edgeName="tLoop6",targetState="sObstacleLoop",cond=whenEventGuarded("obstacle",{LoopCounter < 3}))
-					transition(edgeName="tLoop7",targetState="sEndLoop",cond=whenEventGuarded("obstacle",{LoopCounter == 3}))
-				}	 
-				state("sObstacleLoop") { //this:State
-					action { //it:State
-						println("sObstacleLoop")
-						val Runtime = System.currentTimeMillis() - Start;
-						Elapsed += Runtime;
-						LoopCounter += 1;
-						forward("cmd", "cmd(a)" ,"basicrobot" ) 
-						delay(1) 
-					}
-					 transition( edgeName="goto",targetState="sLoop", cond=doswitch() )
-				}	 
-				state("sEndLoop") { //this:State
-					action { //it:State
-						println("sEndLoop")
-						LoopCounter = 0;
-						Elapsed = 0L;
-						val Perimeter = Elapsed * 0.2;
-						println("elapsed time: ${Elapsed}")
-						println("perimeter: ${Perimeter} meters")
-						forward("cmd", "cmd(a)" ,"basicrobot" ) 
+						Duration = getDuration()
+						answer("step", "stepfail", "stepfail($Duration,obstacle)"   )  
+						if(DoStepAnswer){ println("stepFail Duration=$Duration ")
+						 }
 					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 

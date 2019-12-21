@@ -1,15 +1,18 @@
 import pyqak
 from pyqak import *
 from transitions import *
-from context import Context
+from context import Context, ExternalContext
 import motors
 import sensors
 from generator_utils import clip, avg_window, discard_malformed
 
-ctx = Context('ctx-raspberry', '192.168.1.7', 8030)
+OBSTACLE_THRESHOLD = 3
+
+ctx = Context('ctx-raspberry', '192.168.1.117', 8030)
+ctx_mind = ExternalContext('ctx-mind', '192.168.1.92', 8020)
 
 sonar = sensors.Sonar(17, 27)
-ctx.emitter('obstacle', avg_window(clip(discard_malformed(sonar.stream()))), from_name='sonar')
+ctx.emitter('sonar', avg_window(clip(discard_malformed(sonar.stream()))), from_name='sonar')
 
 
 ctx.actor_scope('robot')
@@ -59,11 +62,12 @@ async def handle_cmd(self, t):
         self.motordx.stop()
     await self.transition('work', Epsilon)
 
-
 @state
 async def handle_sonar(self, t):
     print('robot | handle_sonar')
-    print(t['msg'])
+    sonar_value = t['msg'].payload
+    if sonar_value < OBSTACLE_THRESHOLD:
+        await self.emit('obstacle', sonar_value)
     await self.transition('work', Epsilon)
 
 

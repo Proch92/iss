@@ -1,7 +1,8 @@
 %====================================================================================
 % robotmind description   
 %====================================================================================
-context(ctxmind, "localhost",  "TCP", "8020").
-context(ctxbasicrobot, "10.201.116.57",  "TCP", "8018").
- qactor( basicrobot, ctxbasicrobot, "external").
+context(ctxmind, "192.168.1.92",  "TCP", "8020").
+context(ctxbasicrobot, "192.168.1.117",  "TCP", "8030").
+ qactor( robot, ctxbasicrobot, "external").
   qactor( robotmind, ctxmind, "it.unibo.robotmind.Robotmind").
+  qactor( supervisor, ctxmind, "it.unibo.supervisor.Supervisor").
