@@ -1,0 +1,20 @@
+REQUIREMENTS
+The supervisor of a waiting room (wroom) of a large train station intends to promote automatic collection of the rubbish, by means of ddr robots. To this end, some specialized robot (detector) periodically explores the surface of the wroom in order to collect objects made of recyclable material, in particular bottles made of plastic.
+
+The wroom is equipped with a indoor air quality sensor (for example CJMCU-811) that makes available data on the TVOC concentration in ppm.
+
+When the indoor air quality sensor detects a level of TVOC higher than a prefixed value, the wroom is said to be in state-TVOCHigh.
+
+The wroom is also equipped with a collector of plastic-objects (plasticBox) that can contain a maximum of NPB (e.g. NPB=10) bottles.
+
+The detector is initially located in a detectorHome situated on the (left-up) corner of the wroom.
+
+The collector is situated along the border of the wroom behind the detectorHome and works as a smart device, able to expose and update - via CoAP - its content. 
+
+REQ ANALYSIS
+structure: the system is composed of a room 'wroom' in which the 'detector' is immersed. The room has 2 computational entities: a TVOC sensor and a plastic box.
+
+interaction: the movable entity 'detector' moves inside the room, recognizes and picks up trash. The 'detector' must check the TVOC sensor and halt the job if a certain threshold is reached. The 'detector' must empty its trash can when it's full in the plastic box.
+
+behaviour: the 'detector' searches extensively the room for trash. When its trash can gets full it pauses the job to empty it's trash can and then gets back to work. When the room is clean the detector gets back to its original position.
+
