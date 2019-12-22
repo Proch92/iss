@@ -21,13 +21,13 @@ ExternalQActor robot context ctxBasicRobot
 
 QActor robotmind context ctxMind {
 	["
-	var StepTime = 0L 
+	var StepTime = 500L 
 	var Duration = 0 
 	var WithResource = true
 	var DoStepAnswer = false
 	"]
 	State s0 initial {
-		println("init")
+		println("robotmind | init")
 	}
 	Goto activateResource  if "WithResource" else idle
 	
@@ -40,7 +40,7 @@ QActor robotmind context ctxMind {
 	Goto idle
 
 	State idle {
-		println("idle")
+		println("robotmind | idle")
 	}
 	Transition tWork
 		whenMsg step		-> doStepNoAnswer
@@ -49,7 +49,7 @@ QActor robotmind context ctxMind {
 		whenMsg stop		-> sHandleStopUnexpected
 	
 	State sHandleStopUnexpected {
-		println("sHandleStopUnexpected - not expecting stop command outside of step context")
+		println("robotmind | sHandleStopUnexpected - not expecting stop command outside of step context")
 	}
 	Goto idle
 
@@ -85,7 +85,7 @@ QActor robotmind context ctxMind {
     } Goto doStep
      
 	State doStep{
- 		println("doStep StepTime = $StepTime")
+ 		println("robotmind | doStep StepTime = $StepTime")
  		["startTimer()"]
 		forward robot -m cmd : cmd(w)
  	}
@@ -96,7 +96,7 @@ QActor robotmind context ctxMind {
  	
 	State endStep{
 		forward robot -m cmd : cmd( h )
-		println("step DONE")
+		println("robotmind | step DONE")
 		if "WithResource" { run kotlincode.coapSupport.updateResource(myself, "robot/pos", "up") }
 		if "DoStepAnswer" { replyTo step with stepdone : stepdone(ok) }
   	}
@@ -105,21 +105,58 @@ QActor robotmind context ctxMind {
 	State stepStop{
 		["Duration = getDuration()"]
 		forward robot -m cmd : cmd( h )
+		println("robotmind | stepStop Duration=$Duration")
 		if "DoStepAnswer" { replyTo step with stepfail : stepfail($Duration, stopped) }
-		println("stepStop Duration=$Duration")
  	}
 	Goto idle  	 
 
 	State stepFail{
 		["Duration = getDuration()"]
-		replyTo step with stepfail : stepfail($Duration, obstacle)
-		if "DoStepAnswer" { println("stepFail Duration=$Duration ") }
+		println("robotmind | stepFail Duration=$Duration ")
+		if "DoStepAnswer" { replyTo step with stepfail : stepfail($Duration, obstacle) }
   	}
+	Goto revertStep
+	
+	State revertStep {
+		println("robotmind | revertStep")
+		forward robot -m cmd : cmd(s)
+	}
+	Transition trevert
+		whenTimeVar Duration -> stopRevert
+	
+	State stopRevert {
+		println("robotmind | stopRevert")
+		forward robot -m cmd : cmd(h)
+	}
 	Goto idle
 }
 
-QActor supervisor context ctxMind {
+QActor detector context ctxMind {
+	["
+	var MaxTrash = 2
+	var CurrentTrash = 0
+	"]
 	State init initial {
-		println("init")
+		println("detector | init")
+		run itunibo.planner.plannerUtil.initAI()
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		run mystuff.DFSUtil.movedOn(0, 0)
 	}
+	Goto wander
+	
+	State checkBin {
+		println("detector | think")
+	}
+	Goto discharge if "(MaxTrash == CurrentTrash)" else wander
+	
+	State wander {
+		println("detector | searchNext")
+		["var (Next_x, Next_y) = mystuff.DFSUtil.next()"]
+		run itunibo.planner.plannerUtil.setGoal("$Next_x","$Next_y")
+		run itunibo.planner.plannerUtil.doPlan() 
+		run itunibo.planner.plannerUtil.executeMoves()
+		run itunibo.planner.plannerUtil.showMap()
+	}
+	Goto checkBin
+	
 }

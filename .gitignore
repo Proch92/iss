@@ -38,3 +38,6 @@ robotMind/.project
 pyqactor/__pycache__/
 
 py_code/pyqak/__pycache__/
+
+.idea/
+resources/mystuff/mystuff.iml

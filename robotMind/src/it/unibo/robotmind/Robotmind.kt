@@ -23,7 +23,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						println("init")
+						println("robotmind | init")
 					}
 					 transition( edgeName="goto",targetState="activateResource", cond=doswitchGuarded({WithResource}) )
 					transition( edgeName="goto",targetState="idle", cond=doswitchGuarded({! WithResource}) )
@@ -39,7 +39,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("idle") { //this:State
 					action { //it:State
-						println("idle")
+						println("robotmind | idle")
 					}
 					 transition(edgeName="tWork0",targetState="doStepNoAnswer",cond=whenDispatch("step"))
 					transition(edgeName="tWork1",targetState="doStepWithAnswer",cond=whenRequest("step"))
@@ -48,7 +48,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("sHandleStopUnexpected") { //this:State
 					action { //it:State
-						println("sHandleStopUnexpected - not expecting stop command outside of step context")
+						println("robotmind | sHandleStopUnexpected - not expecting stop command outside of step context")
 					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
@@ -88,7 +88,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("doStep") { //this:State
 					action { //it:State
-						println("doStep StepTime = $StepTime")
+						println("robotmind | doStep StepTime = $StepTime")
 						startTimer()
 						forward("cmd", "cmd(w)" ,"robot" ) 
 						stateTimer = TimerActor("timer_doStep", 
@@ -101,7 +101,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				state("endStep") { //this:State
 					action { //it:State
 						forward("cmd", "cmd(h)" ,"robot" ) 
-						println("step DONE")
+						println("robotmind | step DONE")
 						if(WithResource){ kotlincode.coapSupport.updateResource(myself ,"robot/pos", "up" )
 						 }
 						if(DoStepAnswer){ answer("step", "stepdone", "stepdone(ok)"   )  
@@ -115,7 +115,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						forward("cmd", "cmd(h)" ,"robot" ) 
 						if(DoStepAnswer){ answer("step", "stepfail", "stepfail($Duration,stopped)"   )  
 						 }
-						println("stepStop Duration=$Duration")
+						println("robotmind | stepStop Duration=$Duration")
 					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
@@ -123,7 +123,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 					action { //it:State
 						Duration = getDuration()
 						answer("step", "stepfail", "stepfail($Duration,obstacle)"   )  
-						if(DoStepAnswer){ println("stepFail Duration=$Duration ")
+						if(DoStepAnswer){ println("robotmind | stepFail Duration=$Duration ")
 						 }
 					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
