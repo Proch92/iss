@@ -2,8 +2,8 @@ package myai
 
 data class Node (var parent: Node?, var cell: Pair<Int, Int>)
 
-class Planner {
-    private var room = Room()
+class Planner (room: Room) {
+    var room = room
     private var plan : MutableList<Pair<Int, Int>> = mutableListOf()
 
     fun new_plan (start:Pair<Int, Int>, goal:Pair<Int, Int>) : Boolean {
@@ -15,7 +15,7 @@ class Planner {
                 return false
             if (visited.contains(Pair(x, y)))
                 return false
-            if (room.get(x, y) in listOf(myai.Type.UNKOWN, myai.Type.OBSTACLE, myai.Type.PLASTIC))
+            if (room.get(x, y) in listOf(myai.Type.UNKNOWN, myai.Type.OBSTACLE, myai.Type.PLASTIC))
                 return false
             return true
         }
@@ -29,12 +29,13 @@ class Planner {
             visited.add(node.cell)
 
             if (node.cell == goal) {
-                while (node != null) {
+                while (node != root) {
                     plan.add(node.cell)
                     node = node.parent!!
                 }
                 plan = plan.reversed().toMutableList()
-                plan.removeAt(0)
+
+                return true
             }
 
             val (x, y) = node.cell
@@ -44,7 +45,7 @@ class Planner {
             if (isValidEntry(x, y+1)) queue.add(Node(node, Pair(x, y+1)))
         }
 
-        return plan.isNotEmpty()
+        return false
     }
 
     fun nextMove() : Pair<Int, Int> {

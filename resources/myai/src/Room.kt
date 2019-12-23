@@ -1,15 +1,15 @@
 package myai
 
-enum class Type {FREE, ROBOT, OBSTACLE, PLASTIC, UNKOWN}
+enum class Type {FREE, ROBOT, OBSTACLE, PLASTIC, UNKNOWN}
 
 class Room {
 	private var room : SparseMatrix<Type> = SparseMatrix()
 
 	fun get(x:Int, y:Int) : Type {
-		try {
-			return room.get(x, y)
+		return try {
+			room.get(x, y)
 		} catch (e: IllegalArgumentException) {
-			return Type.UNKOWN
+			Type.UNKNOWN
 		}
 	}
 
@@ -31,13 +31,13 @@ class Room {
 		}
 	}
 
-	fun typeToString(type:Type) : String {
-		when (type) {
-			Type.OBSTACLE -> return "X"
-			Type.FREE -> return " "
-			Type.PLASTIC -> return "!"
-			Type.ROBOT -> return "r"
-			Type.UNKOWN -> return "?"
+	private fun typeToString(type:Type) : String {
+		return when (type) {
+			Type.OBSTACLE -> "X"
+			Type.FREE -> "."
+			Type.PLASTIC -> "!"
+			Type.ROBOT -> "r"
+			Type.UNKNOWN -> "?"
 		}
 	}
 }
