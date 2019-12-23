@@ -1,10 +1,10 @@
-package mystuff
+package myai
 
 object DFSUtil {
-	private var visited : MutableSet<Pair> = setOf()
-	private var stack : MutableList<Pair> = mutableListOf()
+	private var visited : MutableSet<Pair<Int, Int>> = mutableSetOf()
+	private var stack : MutableList<Pair<Int, Int>> = mutableListOf()
 	
-	fun movedOn(x:int, y:int) {
+	fun movedOn(x:Int, y:Int) {
 		visited.add(Pair(x, y))
 		if (isValidEntry(x-1, y)) stack.add(Pair(x-1, y))
 		if (isValidEntry(x+1, y)) stack.add(Pair(x+1, y))
@@ -12,7 +12,7 @@ object DFSUtil {
 		if (isValidEntry(x, y+1)) stack.add(Pair(x, y+1))
 	}
 	
-	fun isValidEntry(x:int, y:int) : Boolean {
+	fun isValidEntry(x:Int, y:Int) : Boolean {
 		if (x < 0 || y < 0)
 			return false
 		if (visited.contains(Pair(x, y)))
@@ -20,7 +20,7 @@ object DFSUtil {
 		return true
 	}
 	
-	fun next() : Pair {
-		return stack.pop()
+	fun next() : Pair<Int, Int> {
+		return stack.removeAt(stack.lastIndex)
 	}
 }

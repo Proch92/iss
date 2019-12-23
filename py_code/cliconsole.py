@@ -1,7 +1,7 @@
 import socket
 import sys
 
-name = 'robotmind'
+name = 'robot'
 
 template = "msg({},dispatch,cliconsole,{},{},1)"
 

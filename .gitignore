@@ -41,3 +41,9 @@ py_code/pyqak/__pycache__/
 
 .idea/
 resources/mystuff/mystuff.iml
+
+resources/myai/out/production/myai/META-INF/
+
+resources/myai/myai.iml
+
+*.class

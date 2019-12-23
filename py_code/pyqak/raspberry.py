@@ -22,8 +22,8 @@ ctx.actor_scope('robot')
 @state
 async def init(self, t):
     print('robot | init')
-    self.motordx = motors.Motor(13, 6, 5, default_power=50)
-    self.motorsx = motors.Motor(26, 19, 20, default_power=50)
+    self.motordx = motors.Motor(13, 6, 5, default_power=70)
+    self.motorsx = motors.Motor(26, 19, 20, default_power=70)
     await self.transition('work', Epsilon)
 
 
@@ -46,14 +46,14 @@ async def handle_cmd(self, t):
         self.motorsx.backward()
         self.motordx.backward()
     elif cmd == 'a':
-        self.motorsx.backward(power=38)
-        self.motordx.forward(power=52)
+        self.motorsx.backward(power=50)
+        self.motordx.forward(power=60)
         await self.sleep(0.47)
         self.motorsx.stop()
         self.motordx.stop()
     elif cmd == 'd':
-        self.motorsx.forward(power=52)
-        self.motordx.backward(power=38)
+        self.motorsx.forward(power=60)
+        self.motordx.backward(power=50)
         await self.sleep(0.47)
         self.motorsx.stop()
         self.motordx.stop()
