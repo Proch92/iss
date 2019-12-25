@@ -15,31 +15,89 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		
+			var MaxTrash = 2
+			var CurrentTrash = 0
+			val room = myai.Room()
+			val dfs = myai.DFSUtil(room)
+			val planner = myai.Planner(room)
+			val StepDuration = 500
+			var Goal : Pair<Int, Int> = Pair(0, 0)
 		return { //this:ActionBasciFsm
 				state("init") { //this:State
 					action { //it:State
 						println("detector | init")
+						
+								dfs.movedOn(0, 0)
+								room.print()
 					}
-					 transition( edgeName="goto",targetState="think", cond=doswitch() )
-				}	 
-				state("think") { //this:State
-					action { //it:State
-						println("detector | think")
-					}
-					 transition( edgeName="goto",targetState="discharge", cond=doswitchGuarded({isRobotFull}) )
-					transition( edgeName="goto",targetState="searchNext", cond=doswitchGuarded({! isRobotFull}) )
+					 transition( edgeName="goto",targetState="explore", cond=doswitch() )
 				}	 
 				state("discharge") { //this:State
 					action { //it:State
 						println("detector | discharge")
+						
+								Goal = Pair(0, 0)
+								planner.new_plan(Goal)
+								planner.execute_plan()
 					}
-					 transition( edgeName="goto",targetState="think", cond=doswitch() )
+					 transition( edgeName="goto",targetState="waitPlanCompletion", cond=doswitch() )
 				}	 
-				state("searchNext") { //this:State
+				state("explore") { //this:State
 					action { //it:State
 						println("detector | searchNext")
+						
+								Goal = dfs.next()
+								planner.new_plan(Goal)
+								planner.execute_plan()
 					}
-					 transition( edgeName="goto",targetState="think", cond=doswitch() )
+					 transition( edgeName="goto",targetState="waitPlanCompletion", cond=doswitch() )
+				}	 
+				state("waitPlanCompletion") { //this:State
+					action { //it:State
+						println("detector | waitPlanCompletion")
+					}
+					 transition(edgeName="twait8",targetState="checkGoal",cond=whenEvent("stepdone"))
+					transition(edgeName="twait9",targetState="askObstacle",cond=whenEvent("stepfail"))
+				}	 
+				state("checkGoal") { //this:State
+					action { //it:State
+						println("detector | checkGoal")
+						
+								val cur_x = myai.RobotState.x
+								val cur_y = myai.RobotState.y
+								if (cur_x == 0 && cur_y == 0) {
+									println("emptying the trash")
+									CurrentTrash = 0
+								}
+								room.put(cur_x, cur_y, myai.Type.FREE)
+					}
+					 transition( edgeName="goto",targetState="explore", cond=doswitchGuarded({(Pair(myai.RobotState.x, myai.RobotState.y) == Goal)}) )
+					transition( edgeName="goto",targetState="waitPlanCompletion", cond=doswitchGuarded({! (Pair(myai.RobotState.x, myai.RobotState.y) == Goal)}) )
+				}	 
+				state("askObstacle") { //this:State
+					action { //it:State
+						println("detector | askObstalce")
+					}
+					 transition(edgeName="task10",targetState="plasticFound",cond=whenDispatch("itsPlastic"))
+					transition(edgeName="task11",targetState="obstacleFound",cond=whenDispatch("itsObstacle"))
+				}	 
+				state("plasticFound") { //this:State
+					action { //it:State
+						println("detector | plasticFound")
+						CurrentTrash += 1
+					}
+					 transition( edgeName="goto",targetState="discharge", cond=doswitchGuarded({(MaxTrash == CurrentTrash)}) )
+					transition( edgeName="goto",targetState="explore", cond=doswitchGuarded({! (MaxTrash == CurrentTrash)}) )
+				}	 
+				state("obstacleFound") { //this:State
+					action { //it:State
+						println("detector | obstacleFound")
+						
+								val (gx, gy) = Goal
+								room.put(gx, gy, myai.Type.OBSTACLE)
+					}
+					 transition( edgeName="goto",targetState="explore", cond=doswitch() )
 				}	 
 			}
 		}

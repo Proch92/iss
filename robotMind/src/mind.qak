@@ -10,9 +10,14 @@ Dispatch step	: step(DURATION)
 Request step	: step(DURATION)
 Reply stepdone	: stepdone(V)
 Reply stepfail	: stepfail(DURATION, CAUSE)
+Event stepdone	: stepdone(V)
+Event stepfail	: stepfail(DURATION, CAUSE)
 Dispatch stop	: stop(X)
 Dispatch cmd	: cmd(X)
 Event obstacle	: obstacle(DISTANCE)
+
+Dispatch itsPlastic : itsPlastic(X)
+Dispatch itsObstacle : itsObstacle(X)
 
 Context ctxMind			ip [ host= "192.168.1.92"	port= 8020 ]
 Context ctxBasicRobot	ip [ host= "192.168.1.117"	port= 8030 ]
@@ -41,6 +46,7 @@ QActor robotmind context ctxMind {
 
 	State idle {
 		println("robotmind | idle")
+		["myai.RobotState.print()"]
 	}
 	Transition tWork
 		whenMsg step		-> doStepNoAnswer
@@ -55,7 +61,10 @@ QActor robotmind context ctxMind {
 
 	State sHandleCmd {
 		onMsg( cmd : cmd(X) ){ 
-			["var Move = payloadArg(0)"]
+			["
+			var Move = payloadArg(0)
+			myai.RobotState.update(Move)
+			"]
 			forward robot -m cmd : cmd( $Move )
 			if "( WithResource )" {
 				run kotlincode.coapSupport.updateResource(myself, "robot/pos", "u$Move")
@@ -95,10 +104,12 @@ QActor robotmind context ctxMind {
 		whenEvent obstacle    -> stepFail
  	
 	State endStep{
+		["myai.RobotState.update(\"step\")"]
 		forward robot -m cmd : cmd( h )
 		println("robotmind | step DONE")
 		if "WithResource" { run kotlincode.coapSupport.updateResource(myself, "robot/pos", "up") }
 		if "DoStepAnswer" { replyTo step with stepdone : stepdone(ok) }
+		emit stepdone : stepdone(ok)
   	}
 	Goto idle
 
@@ -107,13 +118,15 @@ QActor robotmind context ctxMind {
 		forward robot -m cmd : cmd( h )
 		println("robotmind | stepStop Duration=$Duration")
 		if "DoStepAnswer" { replyTo step with stepfail : stepfail($Duration, stopped) }
+		emit stepfail : stepfail($Duration, stopped)
  	}
-	Goto idle  	 
+	Goto revertStep  	 
 
 	State stepFail{
 		["Duration = getDuration()"]
 		println("robotmind | stepFail Duration=$Duration ")
 		if "DoStepAnswer" { replyTo step with stepfail : stepfail($Duration, obstacle) }
+		emit stepfail : stepfail($Duration, obstacle)
   	}
 	Goto revertStep
 	
@@ -135,28 +148,82 @@ QActor detector context ctxMind {
 	["
 	var MaxTrash = 2
 	var CurrentTrash = 0
+	val room = myai.Room()
+	val dfs = myai.DFSUtil(room)
+	val planner = myai.Planner(room)
+	val StepDuration = 500
+	var Goal : Pair<Int, Int> = Pair(0, 0)
 	"]
 	State init initial {
 		println("detector | init")
-		run itunibo.planner.plannerUtil.initAI()
-		run itunibo.planner.moveUtils.showCurrentRobotState()
-		run mystuff.DFSUtil.movedOn(0, 0)
+		["
+		dfs.movedOn(0, 0)
+		room.print()
+		"]
 	}
-	Goto wander
+	Goto explore
 	
-	State checkBin {
-		println("detector | think")
+	State discharge {
+		println("detector | discharge")
+		["
+		Goal = Pair(0, 0)
+		planner.new_plan(Goal)
+		planner.execute_plan()
+		"]
 	}
-	Goto discharge if "(MaxTrash == CurrentTrash)" else wander
+	Goto waitPlanCompletion
 	
-	State wander {
+	State explore {
 		println("detector | searchNext")
-		["var (Next_x, Next_y) = mystuff.DFSUtil.next()"]
-		run itunibo.planner.plannerUtil.setGoal("$Next_x","$Next_y")
-		run itunibo.planner.plannerUtil.doPlan() 
-		run itunibo.planner.plannerUtil.executeMoves()
-		run itunibo.planner.plannerUtil.showMap()
+		["
+		Goal = dfs.next()
+		planner.new_plan(Goal)
+		planner.execute_plan()
+		"]
 	}
-	Goto checkBin
+	Goto waitPlanCompletion
 	
+	State waitPlanCompletion {
+		println("detector | waitPlanCompletion")
+	}
+	Transition twait
+		whenEvent stepdone -> checkGoal
+		whenEvent stepfail -> askObstacle
+	
+	State checkGoal {
+		println("detector | checkGoal")
+		["
+		val cur_x = myai.RobotState.x
+		val cur_y = myai.RobotState.y
+		if (cur_x == 0 && cur_y == 0) {
+			println(\"emptying the trash\")
+			CurrentTrash = 0
+		}
+		room.put(cur_x, cur_y, myai.Type.FREE)
+		"]
+	}
+	Goto explore if "(Pair(myai.RobotState.x, myai.RobotState.y) == Goal)" else waitPlanCompletion
+	
+	State askObstacle {
+		println("detector | askObstalce")
+		// ask if plastic bottle or obstacle
+	}
+	Transition task
+		whenMsg itsPlastic -> plasticFound
+		whenMsg itsObstacle -> obstacleFound
+	
+	State plasticFound {
+		println("detector | plasticFound")
+		["CurrentTrash += 1"]
+	}
+	Goto discharge if "(MaxTrash == CurrentTrash)" else explore
+	
+	State obstacleFound {
+		println("detector | obstacleFound")
+		["
+		val (gx, gy) = Goal
+		room.put(gx, gy, myai.Type.OBSTACLE)
+		"]
+	}
+	Goto explore
 }

@@ -12,9 +12,16 @@ fun main() {
 
     val dfs = DFSUtil(room)
     dfs.movedOn(Pair(0, 0))
-    while (dfs.isDone()) {
+    var pre = Pair(0, 0)
+    while (!dfs.isDone()) {
         val nextcell = dfs.next()
         println(nextcell)
         dfs.movedOn(nextcell)
+        val (x, y) = nextcell
+        val (px, py) = pre
+        room.put(px, py, Type.FREE)
+        room.put(x, y, Type.ROBOT)
+        pre = Pair(x, y)
+        room.print()
     }
 }

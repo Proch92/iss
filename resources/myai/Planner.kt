@@ -1,14 +1,18 @@
 package myai
 
+import kotlin.math.abs
+import it.unibo.kactor.*
+
 data class Node (var parent: Node?, var cell: Pair<Int, Int>)
 
 class Planner (room: Room) {
     var room = room
     private var plan : MutableList<Pair<Int, Int>> = mutableListOf()
 
-    fun new_plan (start:Pair<Int, Int>, goal:Pair<Int, Int>) : Boolean {
+    fun new_plan (goal:Pair<Int, Int>) : Boolean {
         var queue : MutableList<Node> = mutableListOf()
         var visited : MutableSet<Pair<Int, Int>> = mutableSetOf()
+		val start : Pair<Int, Int> = Pair(RobotState.x, RobotState.y)
 
         fun isValidEntry(x:Int, y:Int) : Boolean {
             if (x < 0 || y < 0)
@@ -28,7 +32,8 @@ class Planner (room: Room) {
             var node = queue.removeAt(0)
             visited.add(node.cell)
 
-            if (node.cell == goal) {
+            if (isAdjacent(node.cell, goal)) {
+                plan.add(goal)
                 while (node != root) {
                     plan.add(node.cell)
                     node = node.parent!!
@@ -48,7 +53,34 @@ class Planner (room: Room) {
         return false
     }
 
-    fun nextMove() : Pair<Int, Int> {
+    fun isAdjacent(c0: Pair<Int, Int>, c1: Pair<Int, Int>) : Boolean {
+        return manhattan(c0, c1) == 1
+    }
+
+    fun manhattan(c0: Pair<Int, Int>, c1: Pair<Int, Int>) : Int {
+        val (x0, y0) = c0
+        val (x1, y1) = c1
+
+        return abs(x1 - x0) + abs(y1 - y0)
+    }
+
+    fun executePlan(actorName : String) : Boolean {
+    	var robot : ActorBasic? = sysUtil.getActor("robotmind")
+		
+    	while (!isPlanDone()) {
+			val nextc = nextCell()
+			while ((val nextmove = moveUtils.move(nextc)) != "step") {
+				forward("cmd", "cmd($nextmove)", robot!!)
+			}
+			forward("step", "step(500)", robot!!)
+		}
+    }
+
+    fun nextCell() : Pair<Int, Int> {
         return plan.removeAt(0)
     }
+	
+	fun isPlanDone() : Boolean {
+		return plan.isEmpty()
+	}
 }

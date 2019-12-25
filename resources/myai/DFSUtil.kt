@@ -1,7 +1,5 @@
 package myai
 
-import com.sun.org.apache.xpath.internal.operations.Bool
-
 class DFSUtil (room: Room) {
 	private var visited : MutableSet<Pair<Int, Int>> = mutableSetOf()
 	private var stack : MutableList<Pair<Int, Int>> = mutableListOf()
@@ -20,6 +18,8 @@ class DFSUtil (room: Room) {
 		if (x < 0 || y < 0)
 			return false
 		if (visited.contains(Pair(x, y)))
+			return false
+		if (room.get(x, y) == Type.OBSTACLE)
 			return false
 		return true
 	}

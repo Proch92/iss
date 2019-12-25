@@ -16,7 +16,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-			var StepTime = 0L 
+			var StepTime = 500L 
 			var Duration = 0 
 			var WithResource = true
 			var DoStepAnswer = false
@@ -40,6 +40,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				state("idle") { //this:State
 					action { //it:State
 						println("robotmind | idle")
+						myai.RobotState.print()
 					}
 					 transition(edgeName="tWork0",targetState="doStepNoAnswer",cond=whenDispatch("step"))
 					transition(edgeName="tWork1",targetState="doStepWithAnswer",cond=whenRequest("step"))
@@ -56,7 +57,9 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("cmd(X)"), Term.createTerm("cmd(X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								var Move = payloadArg(0)
+								
+											var Move = payloadArg(0)
+											myai.RobotState.update(Move)
 								forward("cmd", "cmd($Move)" ,"robot" ) 
 								if(( WithResource )){ kotlincode.coapSupport.updateResource(myself ,"robot/pos", "u$Move" )
 								 }
@@ -100,12 +103,14 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("endStep") { //this:State
 					action { //it:State
+						myai.RobotState.update("step")
 						forward("cmd", "cmd(h)" ,"robot" ) 
 						println("robotmind | step DONE")
 						if(WithResource){ kotlincode.coapSupport.updateResource(myself ,"robot/pos", "up" )
 						 }
 						if(DoStepAnswer){ answer("step", "stepdone", "stepdone(ok)"   )  
 						 }
+						emit("stepdone", "stepdone(ok)" ) 
 					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
@@ -113,18 +118,36 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 					action { //it:State
 						Duration = getDuration()
 						forward("cmd", "cmd(h)" ,"robot" ) 
+						println("robotmind | stepStop Duration=$Duration")
 						if(DoStepAnswer){ answer("step", "stepfail", "stepfail($Duration,stopped)"   )  
 						 }
-						println("robotmind | stepStop Duration=$Duration")
+						emit("stepfail", "stepfail($Duration,stopped)" ) 
 					}
-					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
+					 transition( edgeName="goto",targetState="revertStep", cond=doswitch() )
 				}	 
 				state("stepFail") { //this:State
 					action { //it:State
 						Duration = getDuration()
-						answer("step", "stepfail", "stepfail($Duration,obstacle)"   )  
-						if(DoStepAnswer){ println("robotmind | stepFail Duration=$Duration ")
+						println("robotmind | stepFail Duration=$Duration ")
+						if(DoStepAnswer){ answer("step", "stepfail", "stepfail($Duration,obstacle)"   )  
 						 }
+						emit("stepfail", "stepfail($Duration,obstacle)" ) 
+					}
+					 transition( edgeName="goto",targetState="revertStep", cond=doswitch() )
+				}	 
+				state("revertStep") { //this:State
+					action { //it:State
+						println("robotmind | revertStep")
+						forward("cmd", "cmd(s)" ,"robot" ) 
+						stateTimer = TimerActor("timer_revertStep", 
+							scope, context!!, "local_tout_robotmind_revertStep", Duration )
+					}
+					 transition(edgeName="trevert7",targetState="stopRevert",cond=whenTimeout("local_tout_robotmind_revertStep"))   
+				}	 
+				state("stopRevert") { //this:State
+					action { //it:State
+						println("robotmind | stopRevert")
+						forward("cmd", "cmd(h)" ,"robot" ) 
 					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
