@@ -1,7 +1,6 @@
 %====================================================================================
 % basicrobot description   
 %====================================================================================
-context(ctxbasicrobot, "10.201.116.57",  "TCP", "8018").
+context(ctxbasicrobot, "172.0.0.1",  "TCP", "8030").
  qactor( robotadapter, ctxbasicrobot, "itunibo.robot.robotAdapterQaStream").
-  qactor( basicrobot, ctxbasicrobot, "it.unibo.basicrobot.Basicrobot").
-  qactor( sentinel, ctxbasicrobot, "it.unibo.sentinel.Sentinel").
+  qactor( robot, ctxbasicrobot, "it.unibo.robot.Robot").

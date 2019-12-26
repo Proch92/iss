@@ -59,6 +59,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								
 											var Move = payloadArg(0)
+											println("robotmind | received $Move")
 											myai.RobotState.update(Move)
 								forward("cmd", "cmd($Move)" ,"robot" ) 
 								if(( WithResource )){ kotlincode.coapSupport.updateResource(myself ,"robot/pos", "u$Move" )

@@ -8,6 +8,7 @@ class DFSUtil (room: Room) {
 	fun movedOn(cell : Pair<Int, Int>) {
 		visited.add(cell)
 		val (x, y) = cell
+		room.put(x, y, Type.FREE)
 		if (isValidEntry(x-1, y)) stack.add(Pair(x-1, y))
 		if (isValidEntry(x+1, y)) stack.add(Pair(x+1, y))
 		if (isValidEntry(x, y-1)) stack.add(Pair(x, y-1))

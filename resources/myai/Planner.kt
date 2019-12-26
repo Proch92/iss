@@ -1,5 +1,6 @@
 package myai
 
+import kotlinx.coroutines.*
 import kotlin.math.abs
 import it.unibo.kactor.*
 import myai.*
@@ -40,7 +41,8 @@ class Planner (room: Room) {
                     node = node.parent!!
                 }
                 plan = plan.reversed().toMutableList()
-
+                
+				println("plan found")
                 return true
             }
 
@@ -50,7 +52,7 @@ class Planner (room: Room) {
             if (isValidEntry(x, y-1)) queue.add(Node(node, Pair(x, y-1)))
             if (isValidEntry(x, y+1)) queue.add(Node(node, Pair(x, y+1)))
         }
-
+        println("couldn't find a suitable plan")
         return false
     }
 
@@ -70,7 +72,10 @@ class Planner (room: Room) {
 			val nextc = nextCell()
 			var nextmove = move(nextc)
 			while (nextmove != "step") {
+				println(nextmove)
 				actor.forward("cmd", "cmd($nextmove)", "robotmind")
+				//Thread.sleep(750)
+				delay(750)
 				nextmove = move(nextc)
 			}
 			actor.forward("step", "step(500)", "robotmind")

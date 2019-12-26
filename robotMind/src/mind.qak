@@ -20,7 +20,8 @@ Dispatch itsPlastic : itsPlastic(X)
 Dispatch itsObstacle : itsObstacle(X)
 
 Context ctxMind			ip [ host= "192.168.1.92"	port= 8020 ]
-Context ctxBasicRobot	ip [ host= "192.168.1.117"	port= 8030 ]
+// Context ctxBasicRobot	ip [ host= "192.168.1.117"	port= 8030 ]
+Context ctxBasicRobot	ip [ host= "127.0.0.1"	port= 8030 ]
 
 ExternalQActor robot context ctxBasicRobot 
 
@@ -63,6 +64,7 @@ QActor robotmind context ctxMind {
 		onMsg( cmd : cmd(X) ){ 
 			["
 			var Move = payloadArg(0)
+			println(\"robotmind | received $Move\")
 			myai.RobotState.update(Move)
 			"]
 			forward robot -m cmd : cmd( $Move )
@@ -174,9 +176,11 @@ QActor detector context ctxMind {
 	Goto waitPlanCompletion
 	
 	State explore {
-		println("detector | searchNext")
+		println("detector | explore")
 		["
+		room.print()
 		Goal = dfs.next()
+		println(Goal)
 		planner.new_plan(Goal)
 		planner.executePlan(myself)
 		"]
@@ -200,7 +204,7 @@ QActor detector context ctxMind {
 			myai.PlasticBox.dump(CurrentTrash)
 			CurrentTrash = 0
 		}
-		room.put(cur_x, cur_y, myai.Type.FREE)
+		dfs.movedOn(Pair(cur_x, cur_y))
 		"]
 	}
 	Goto explore if "(Pair(myai.RobotState.x, myai.RobotState.y) == Goal)" else waitPlanCompletion
