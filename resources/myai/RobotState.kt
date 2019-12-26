@@ -10,35 +10,35 @@ object RobotState {
 	init {
 		x = 0
 		y = 0
-		dir = SOUTH
+		dir = Direction.SOUTH
 	}
 
     fun update(move : String) {
 		if (move == "step") {
 			when(dir) {
-				NORTH -> y -= 1
-				EAST -> x += 1
-				SOUTH -> y += 1
-				WEST -> x -= 1
+				Direction.NORTH -> y -= 1
+				Direction.EAST -> x += 1
+				Direction.SOUTH -> y += 1
+				Direction.WEST -> x -= 1
 			}
 		}
 		else {
 			when(dir) {
-				NORTH -> {
-					if (move == "a") dir = WEST
-					if (move == "d") dir = EAST
+				Direction.NORTH -> {
+					if (move == "a") dir = Direction.WEST
+					if (move == "d") dir = Direction.EAST
 				}
-				EAST -> {
-					if (move == "a") dir = NORTH
-					if (move == "d") dir = SOUTH
+				Direction.EAST -> {
+					if (move == "a") dir = Direction.NORTH
+					if (move == "d") dir = Direction.SOUTH
 				}
-				SOUTH -> {
-					if (move == "a") dir = EAST
-					if (move == "d") dir = WEST
+				Direction.SOUTH -> {
+					if (move == "a") dir = Direction.EAST
+					if (move == "d") dir = Direction.WEST
 				}
-				WEST -> {
-					if (move == "a") dir = SOUTH
-					if (move == "d") dir = NORTH
+				Direction.WEST -> {
+					if (move == "a") dir = Direction.SOUTH
+					if (move == "d") dir = Direction.NORTH
 				}
 			}
 		}
@@ -47,10 +47,10 @@ object RobotState {
 	
 	fun print() {
 		val sdir : String = when(dir) {
-			NORTH -> "north"
-			EAST -> "east"
-			SOUTH -> "south"
-			WEST -> "west"
+			Direction.NORTH -> "north"
+			Direction.EAST -> "east"
+			Direction.SOUTH -> "south"
+			Direction.WEST -> "west"
 		}
 		println("x: $x, y:$y, dir: $sdir")
 	}

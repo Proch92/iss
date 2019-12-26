@@ -28,7 +28,7 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 					action { //it:State
 						println("detector | init")
 						
-								dfs.movedOn(0, 0)
+								dfs.movedOn(Pair(0, 0))
 								room.print()
 					}
 					 transition( edgeName="goto",targetState="explore", cond=doswitch() )
@@ -39,7 +39,7 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						
 								Goal = Pair(0, 0)
 								planner.new_plan(Goal)
-								planner.execute_plan()
+								planner.executePlan(myself)
 					}
 					 transition( edgeName="goto",targetState="waitPlanCompletion", cond=doswitch() )
 				}	 
@@ -49,7 +49,7 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						
 								Goal = dfs.next()
 								planner.new_plan(Goal)
-								planner.execute_plan()
+								planner.executePlan(myself)
 					}
 					 transition( edgeName="goto",targetState="waitPlanCompletion", cond=doswitch() )
 				}	 
@@ -68,6 +68,7 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 								val cur_y = myai.RobotState.y
 								if (cur_x == 0 && cur_y == 0) {
 									println("emptying the trash")
+									myai.PlasticBox.dump(CurrentTrash)
 									CurrentTrash = 0
 								}
 								room.put(cur_x, cur_y, myai.Type.FREE)

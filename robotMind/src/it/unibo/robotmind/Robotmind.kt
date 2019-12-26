@@ -17,7 +17,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
 			var StepTime = 500L 
-			var Duration = 0 
+			var Duration = 0L
 			var WithResource = true
 			var DoStepAnswer = false
 		return { //this:ActionBasciFsm
@@ -116,7 +116,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("stepStop") { //this:State
 					action { //it:State
-						Duration = getDuration()
+						Duration = getDuration().toLong()
 						forward("cmd", "cmd(h)" ,"robot" ) 
 						println("robotmind | stepStop Duration=$Duration")
 						if(DoStepAnswer){ answer("step", "stepfail", "stepfail($Duration,stopped)"   )  
@@ -127,7 +127,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("stepFail") { //this:State
 					action { //it:State
-						Duration = getDuration()
+						Duration = getDuration().toLong()
 						println("robotmind | stepFail Duration=$Duration ")
 						if(DoStepAnswer){ answer("step", "stepfail", "stepfail($Duration,obstacle)"   )  
 						 }

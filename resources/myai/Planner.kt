@@ -2,6 +2,7 @@ package myai
 
 import kotlin.math.abs
 import it.unibo.kactor.*
+import myai.*
 
 data class Node (var parent: Node?, var cell: Pair<Int, Int>)
 
@@ -64,15 +65,15 @@ class Planner (room: Room) {
         return abs(x1 - x0) + abs(y1 - y0)
     }
 
-    fun executePlan(actorName : String) : Boolean {
-    	var robot : ActorBasic? = sysUtil.getActor("robotmind")
-		
+    suspend fun executePlan(actor : ActorBasic) {
     	while (!isPlanDone()) {
 			val nextc = nextCell()
-			while ((val nextmove = moveUtils.move(nextc)) != "step") {
-				forward("cmd", "cmd($nextmove)", robot!!)
+			var nextmove = move(nextc)
+			while (nextmove != "step") {
+				actor.forward("cmd", "cmd($nextmove)", "robotmind")
+				nextmove = move(nextc)
 			}
-			forward("step", "step(500)", robot!!)
+			actor.forward("step", "step(500)", "robotmind")
 		}
     }
 

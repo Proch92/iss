@@ -27,7 +27,7 @@ ExternalQActor robot context ctxBasicRobot
 QActor robotmind context ctxMind {
 	["
 	var StepTime = 500L 
-	var Duration = 0 
+	var Duration = 0L
 	var WithResource = true
 	var DoStepAnswer = false
 	"]
@@ -114,7 +114,7 @@ QActor robotmind context ctxMind {
 	Goto idle
 
 	State stepStop{
-		["Duration = getDuration()"]
+		["Duration = getDuration().toLong()"]
 		forward robot -m cmd : cmd( h )
 		println("robotmind | stepStop Duration=$Duration")
 		if "DoStepAnswer" { replyTo step with stepfail : stepfail($Duration, stopped) }
@@ -123,7 +123,7 @@ QActor robotmind context ctxMind {
 	Goto revertStep  	 
 
 	State stepFail{
-		["Duration = getDuration()"]
+		["Duration = getDuration().toLong()"]
 		println("robotmind | stepFail Duration=$Duration ")
 		if "DoStepAnswer" { replyTo step with stepfail : stepfail($Duration, obstacle) }
 		emit stepfail : stepfail($Duration, obstacle)
@@ -157,7 +157,7 @@ QActor detector context ctxMind {
 	State init initial {
 		println("detector | init")
 		["
-		dfs.movedOn(0, 0)
+		dfs.movedOn(Pair(0, 0))
 		room.print()
 		"]
 	}
@@ -168,7 +168,7 @@ QActor detector context ctxMind {
 		["
 		Goal = Pair(0, 0)
 		planner.new_plan(Goal)
-		planner.execute_plan()
+		planner.executePlan(myself)
 		"]
 	}
 	Goto waitPlanCompletion
@@ -178,7 +178,7 @@ QActor detector context ctxMind {
 		["
 		Goal = dfs.next()
 		planner.new_plan(Goal)
-		planner.execute_plan()
+		planner.executePlan(myself)
 		"]
 	}
 	Goto waitPlanCompletion
@@ -197,6 +197,7 @@ QActor detector context ctxMind {
 		val cur_y = myai.RobotState.y
 		if (cur_x == 0 && cur_y == 0) {
 			println(\"emptying the trash\")
+			myai.PlasticBox.dump(CurrentTrash)
 			CurrentTrash = 0
 		}
 		room.put(cur_x, cur_y, myai.Type.FREE)
