@@ -1,0 +1,1 @@
+node frontendServer.js coap://localhost:5683/robot/pos

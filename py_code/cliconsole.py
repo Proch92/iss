@@ -1,7 +1,7 @@
 import socket
 import sys
 
-name = 'robot'
+name = 'detector'
 
 template = "msg({},dispatch,cliconsole,{},{},1)"
 

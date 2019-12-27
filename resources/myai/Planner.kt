@@ -74,7 +74,6 @@ class Planner (room: Room) {
 			while (nextmove != "step") {
 				println(nextmove)
 				actor.forward("cmd", "cmd($nextmove)", "robotmind")
-				//Thread.sleep(750)
 				delay(750)
 				nextmove = move(nextc)
 			}

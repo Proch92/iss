@@ -82,8 +82,8 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 					action { //it:State
 						println("detector | askObstalce")
 					}
-					 transition(edgeName="task10",targetState="plasticFound",cond=whenDispatch("itsPlastic"))
-					transition(edgeName="task11",targetState="obstacleFound",cond=whenDispatch("itsObstacle"))
+					 transition(edgeName="task10",targetState="plasticFound",cond=whenEvent("itsPlastic"))
+					transition(edgeName="task11",targetState="obstacleFound",cond=whenEvent("itsObstacle"))
 				}	 
 				state("plasticFound") { //this:State
 					action { //it:State
