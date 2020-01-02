@@ -16,7 +16,12 @@ Event stepdone	: stepdone(V)
 Event stepfail	: stepfail(DURATION, CAUSE)
 Dispatch stop	: stop(X)
 Dispatch cmd	: cmd(X)
+Dispatch suspend: suspend(X)
+Dispatch explore: explore(X)
+Dispatch wakeup	: wakeup(X)
 Event obstacle	: obstacle(DISTANCE)
+Event tvocHigh	: tvocHigh(VALUE)
+Event tvocLow	: tvocLow(VALUE)
 
 Event itsPlastic : itsPlastic(X)
 Event itsObstacle : itsObstacle(X)
@@ -157,6 +162,7 @@ QActor detector context ctxMind {
 	val planner = myai.Planner(room)
 	val StepDuration = 500
 	var Goal : Pair<Int, Int> = Pair(0, 0)
+	val Suspended = false
 	"]
 	State init initial {
 		println("detector | init")
@@ -165,7 +171,19 @@ QActor detector context ctxMind {
 		room.print()
 		"]
 	}
-	Goto explore
+	Goto idle
+	
+	State idle {
+		println("detector | idle")
+	}
+	Transition t0
+		whenMsg explore -> explore
+	
+	State sleep {
+		println("detector | sleep")
+	}
+	Transition tsleep
+		whenMsg wakeup -> idle
 	
 	State discharge {
 		println("detector | discharge")
@@ -177,9 +195,16 @@ QActor detector context ctxMind {
 	}
 	Goto waitPlanCompletion
 	
+	State ssuspend {
+		println("detector | ssuspend")
+		["Suspended = true"]
+	}
+	Goto discharge
+	
 	State explore {
 		println("detector | explore")
 		["
+		Suspended = false
 		room.print()
 		Goal = dfs.next()
 		println(Goal)
@@ -195,6 +220,7 @@ QActor detector context ctxMind {
 	Transition twait
 		whenEvent stepdone -> checkGoal
 		whenEvent stepfail -> askObstacle
+		whenMsg suspend	-> ssuspend
 	
 	State checkGoal {
 		println("detector | checkGoal")
@@ -209,7 +235,12 @@ QActor detector context ctxMind {
 		dfs.movedOn(Pair(cur_x, cur_y))
 		"]
 	}
-	Goto explore if "(Pair(myai.RobotState.x, myai.RobotState.y) == Goal)" else waitPlanCompletion
+	Goto goalAchieved if "(Pair(myai.RobotState.x, myai.RobotState.y) == Goal)" else waitPlanCompletion
+	
+	State goalAchieved {
+		println("detector | goalAchieved")
+	}
+	Goto explore if "(Suspended == false)" else sleep
 	
 	State askObstacle {
 		println("detector | askObstalce")
@@ -218,6 +249,7 @@ QActor detector context ctxMind {
 	Transition task
 		whenEvent itsPlastic -> plasticFound
 		whenEvent itsObstacle -> obstacleFound
+		whenMsg suspend	-> ssuspend
 	
 	State plasticFound {
 		println("detector | plasticFound")
@@ -233,4 +265,24 @@ QActor detector context ctxMind {
 		"]
 	}
 	Goto explore
+}
+
+QActor tvocsentinel context ctxMind {
+	State init initial {}
+	Goto idle 
+	
+	State idle{}
+	Transition t0
+		whenEvent tvocHigh	->	suspendRobot
+		whenEvent tvocLow	->	wakeupRobot
+	
+	State suspendRobot {
+		forward detector -m suspend : suspend(X)
+	}
+	Goto idle
+	
+	State wakeupRobot {
+		forward detector -m wakeup : wakeup(X)
+	}
+	Goto idle
 }
