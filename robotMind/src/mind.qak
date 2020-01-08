@@ -22,6 +22,10 @@ Dispatch wakeup	: wakeup(X)
 Event obstacle	: obstacle(DISTANCE)
 Event tvocHigh	: tvocHigh(VALUE)
 Event tvocLow	: tvocLow(VALUE)
+Request canDump	: canDump(NBOTTLES)
+reply dumpAccept: dumpAccept(X)
+reply dumpFull	: dumpFull(X)
+Event boxCannotAccept : boxCannotAccept(X)
 
 Event itsPlastic : itsPlastic(X)
 Event itsObstacle : itsObstacle(X)
@@ -184,9 +188,23 @@ QActor detector context ctxMind {
 	}
 	Transition tsleep
 		whenMsg wakeup -> idle
-	
+
 	State discharge {
 		println("detector | discharge")
+		request plasticBox -m canDump : canDump($CurrentTrash)
+	}
+	Transition twaitAccept
+		whenReply dumpAccept -> goHome
+		whenReply dumpFull -> notifyDumpFull
+
+	State notifyDumpFull {
+		println("detector | notifyDumpFull")
+		emit boxCannotAccept : boxCannotAccept(X)
+	}
+	Goto idle
+	
+	State goHome {
+		println("detector | goHome")
 		["
 		Goal = Pair(0, 0)
 		planner.new_plan(Goal)
@@ -199,7 +217,7 @@ QActor detector context ctxMind {
 		println("detector | ssuspend")
 		["Suspended = true"]
 	}
-	Goto discharge
+	Goto goHome
 	
 	State explore {
 		println("detector | explore")
@@ -227,11 +245,6 @@ QActor detector context ctxMind {
 		["
 		val cur_x = myai.RobotState.x
 		val cur_y = myai.RobotState.y
-		if (cur_x == 0 && cur_y == 0) {
-			println(\"emptying the trash\")
-			myai.PlasticBox.dump(CurrentTrash)
-			CurrentTrash = 0
-		}
 		dfs.movedOn(Pair(cur_x, cur_y))
 		"]
 	}
@@ -239,6 +252,10 @@ QActor detector context ctxMind {
 	
 	State goalAchieved {
 		println("detector | goalAchieved")
+		if "(Goal == Pair(0, 0))" {
+			forward plasticBox -m unload : unload($CurrentTrash)
+			["CurrentTrash = 0"]
+		}
 	}
 	Goto explore if "(Suspended == false)" else sleep
 	
@@ -283,6 +300,45 @@ QActor tvocsentinel context ctxMind {
 	
 	State wakeupRobot {
 		forward detector -m wakeup : wakeup(X)
+	}
+	Goto idle
+}
+
+Qactor plasticBox context ctxMind {
+	["
+	val NPB=10
+	var bottles=0
+	var acceptDump = true
+	"]
+	State init initial {}
+	Goto idle
+
+	State idle {}
+	Transition t0
+		whenMsg unload -> dump
+		whenRequest canDump -> handleReq
+
+	State dump {
+		println("plasticBox | dump")
+		onMsg(unload : unload(X)) {
+			["
+			val nb_dump = payloadArg(0).toInt()
+			bottles += nb_dump
+			"]
+		}
+	}
+	Goto idle
+
+	State handleReq {
+		println("plasticBox | handleReq")
+		onMsg(canDump : canDump(X)) {
+			["
+			val nb_dump = payloadArg(0).toInt()
+			acceptDump = (nb_dump <= (NPB - bottles))
+			"]
+		}
+		if "(acceptDump)" {replyTo canDump with dumpAccept : dumpAccept(X)}
+		else {replyTo canDump with dumpFull : dumpFull(X)}
 	}
 	Goto idle
 }
