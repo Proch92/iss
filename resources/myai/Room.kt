@@ -1,5 +1,7 @@
 package myai
 
+import it.unibo.kactor.ActorBasic
+
 enum class Type {FREE, ROBOT, OBSTACLE, PLASTIC, UNKNOWN}
 
 class Room {
@@ -15,6 +17,18 @@ class Room {
 
 	fun put(x:Int, y:Int, type :Type) {
 		room.put(x, y, type)
+	}
+
+	fun coapPublish(actor:ActorBasic) {
+		var serialized = ""
+		for (y in 0..room.max_y) {
+			for (x in 0..room.max_x) {
+				serialized += typeToString(get(x, y))
+			}
+			serialized += "|"
+		}
+
+		kotlincode.coapSupport.updateResource(actor, "env/map", serialized)
 	}
 
 	fun print() {

@@ -173,6 +173,7 @@ QActor detector context ctxMind {
 		["
 		dfs.movedOn(Pair(0, 0))
 		room.print()
+		if (WithResource) room.coapPublish(myself)
 		"]
 	}
 	Goto idle
@@ -216,6 +217,7 @@ QActor detector context ctxMind {
 	State ssuspend {
 		println("detector | ssuspend")
 		["Suspended = true"]
+		if "(WithResource)" {run kotlincode.coapSupport.updateResource(myself, "robot/status", "suspended")}
 	}
 	Goto goHome
 	
@@ -223,12 +225,12 @@ QActor detector context ctxMind {
 		println("detector | explore")
 		["
 		Suspended = false
-		room.print()
 		Goal = dfs.next()
 		println(Goal)
 		planner.new_plan(Goal)
 		planner.executePlan(myself)
 		"]
+		if "(WithResource)" {run kotlincode.coapSupport.updateResource(myself, "robot/status", "active")}
 	}
 	Goto waitPlanCompletion
 	
@@ -246,6 +248,8 @@ QActor detector context ctxMind {
 		val cur_x = myai.RobotState.x
 		val cur_y = myai.RobotState.y
 		dfs.movedOn(Pair(cur_x, cur_y))
+		room.print()
+		if (WithResource) room.coapPublish(myself)
 		"]
 	}
 	Goto goalAchieved if "(Pair(myai.RobotState.x, myai.RobotState.y) == Goal)" else waitPlanCompletion
@@ -309,6 +313,7 @@ Qactor plasticBox context ctxMind {
 	val NPB=10
 	var bottles=0
 	var acceptDump = true
+	val WithResource = true
 	"]
 	State init initial {}
 	Goto idle
@@ -325,6 +330,9 @@ Qactor plasticBox context ctxMind {
 			val nb_dump = payloadArg(0).toInt()
 			bottles += nb_dump
 			"]
+			if "( WithResource )" {
+				run kotlincode.coapSupport.updateResource(myself, "plasticBox/content", "$bottles")
+			}
 		}
 	}
 	Goto idle
