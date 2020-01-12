@@ -21,7 +21,7 @@ lateinit var host   : String
 	
 	fun updateResource( owner : ActorBasic, path: String, msg : String ){
 		setClientForPath( path )
-		//println("coapSupport | updateResource $msg")
+		println("coapSupport | updateResource $msg")
 		val resp : CoapResponse = client.put(msg, MediaTypeRegistry.TEXT_PLAIN)
 		//println("coapSupport | updateResource respCode=${resp.getCode()}")
 	}

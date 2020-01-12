@@ -22,9 +22,10 @@ Dispatch wakeup	: wakeup(X)
 Event obstacle	: obstacle(DISTANCE)
 Event tvocHigh	: tvocHigh(VALUE)
 Event tvocLow	: tvocLow(VALUE)
+Dispatch unload	: unload(NBOTTLES)
 Request canDump	: canDump(NBOTTLES)
-reply dumpAccept: dumpAccept(X)
-reply dumpFull	: dumpFull(X)
+Reply dumpAccept: dumpAccept(X)
+Reply dumpFull	: dumpFull(X)
 Event boxCannotAccept : boxCannotAccept(X)
 
 Event itsPlastic : itsPlastic(X)
@@ -45,14 +46,6 @@ QActor robotmind context ctxMind {
 	"]
 	State s0 initial {
 		println("robotmind | init")
-	}
-	Goto activateResource  if "WithResource" else idle
-	
-	State activateResource{
-		run kotlincode.resServer.init(myself)
-		run kotlincode.coapSupport.init("coap://localhost:5683")
-		delay 1000 
-		run kotlincode.resourceObserver.init("coap://localhost:5683","robot/pos")
 	}
 	Goto idle
 
@@ -159,27 +152,39 @@ QActor robotmind context ctxMind {
 
 QActor detector context ctxMind {
 	["
-	var MaxTrash = 2
+	val WithResource = true
+	val MaxTrash = 2
 	var CurrentTrash = 0
 	val room = myai.Room()
 	val dfs = myai.DFSUtil(room)
 	val planner = myai.Planner(room)
 	val StepDuration = 500
 	var Goal : Pair<Int, Int> = Pair(0, 0)
-	val Suspended = false
+	var Suspended = false
 	"]
 	State init initial {
 		println("detector | init")
 		["
 		dfs.movedOn(Pair(0, 0))
 		room.print()
-		if (WithResource) room.coapPublish(myself)
 		"]
+	}
+	Goto activateResource  if "WithResource" else idle
+	
+	State activateResource{
+		run kotlincode.resServer.init(myself)
+		run kotlincode.coapSupport.init("coap://localhost:5683")
+		delay 1000 
+		run kotlincode.resourceObserver.init("coap://localhost:5683","robot/pos")
 	}
 	Goto idle
 	
 	State idle {
 		println("detector | idle")
+		["
+		if (WithResource) room.coapPublish(myself)
+		room.print()
+		"]
 	}
 	Transition t0
 		whenMsg explore -> explore
@@ -192,7 +197,7 @@ QActor detector context ctxMind {
 
 	State discharge {
 		println("detector | discharge")
-		request plasticBox -m canDump : canDump($CurrentTrash)
+		request plasticbox -m canDump : canDump($CurrentTrash)
 	}
 	Transition twaitAccept
 		whenReply dumpAccept -> goHome
@@ -217,7 +222,7 @@ QActor detector context ctxMind {
 	State ssuspend {
 		println("detector | ssuspend")
 		["Suspended = true"]
-		if "(WithResource)" {run kotlincode.coapSupport.updateResource(myself, "robot/status", "suspended")}
+		if "(WithResource)" {run kotlincode.coapSupport.updateResource(myself, "robot/status", "status(suspended)")}
 	}
 	Goto goHome
 	
@@ -229,8 +234,9 @@ QActor detector context ctxMind {
 		println(Goal)
 		planner.new_plan(Goal)
 		planner.executePlan(myself)
+		room.print()
 		"]
-		if "(WithResource)" {run kotlincode.coapSupport.updateResource(myself, "robot/status", "active")}
+		if "(WithResource)" {run kotlincode.coapSupport.updateResource(myself, "robot/status", "status(active)")}
 	}
 	Goto waitPlanCompletion
 	
@@ -257,7 +263,7 @@ QActor detector context ctxMind {
 	State goalAchieved {
 		println("detector | goalAchieved")
 		if "(Goal == Pair(0, 0))" {
-			forward plasticBox -m unload : unload($CurrentTrash)
+			forward plasticbox -m unload : unload($CurrentTrash)
 			["CurrentTrash = 0"]
 		}
 	}
@@ -308,14 +314,18 @@ QActor tvocsentinel context ctxMind {
 	Goto idle
 }
 
-Qactor plasticBox context ctxMind {
+QActor plasticbox context ctxMind {
 	["
 	val NPB=10
 	var bottles=0
 	var acceptDump = true
 	val WithResource = true
 	"]
-	State init initial {}
+	State init initial {
+		if "( WithResource )" {
+			run kotlincode.coapSupport.updateResource(myself, "plasticBox/content", "plasticBox($bottles)")
+		}
+	}
 	Goto idle
 
 	State idle {}
@@ -331,7 +341,7 @@ Qactor plasticBox context ctxMind {
 			bottles += nb_dump
 			"]
 			if "( WithResource )" {
-				run kotlincode.coapSupport.updateResource(myself, "plasticBox/content", "$bottles")
+				run kotlincode.coapSupport.updateResource(myself, "plasticBox/content", "plasticBox($bottles)")
 			}
 		}
 	}

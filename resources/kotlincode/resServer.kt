@@ -9,7 +9,14 @@ object resServer{
 			server.add( 
 				 resRobot(owner,  "robot").add(	//robot
 					 resRobotPosition(owner, "pos"),
-					 resRobotSonar(owner, "sonar") )  //robot/pos, robot/sonar
+					 resRobotStatus(owner, "status"),
+					 resRobotSonar(owner, "sonar"),  //robot/pos, robot/sonar
+				 	 resRobotMap(owner, "map"))
+			)
+			server.add(
+				resPlasticBox(owner, "plasticBox").add(
+						resNumBottles(owner, "content")
+				)
 			)
 			server.start();			
 		}

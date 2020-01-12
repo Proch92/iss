@@ -25,16 +25,6 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 					action { //it:State
 						println("robotmind | init")
 					}
-					 transition( edgeName="goto",targetState="activateResource", cond=doswitchGuarded({WithResource}) )
-					transition( edgeName="goto",targetState="idle", cond=doswitchGuarded({! WithResource}) )
-				}	 
-				state("activateResource") { //this:State
-					action { //it:State
-						kotlincode.resServer.init(myself)
-						kotlincode.coapSupport.init( "coap://localhost:5683"  )
-						delay(1000) 
-						kotlincode.resourceObserver.init( "coap://localhost:5683", "robot/pos"  )
-					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
 				state("idle") { //this:State

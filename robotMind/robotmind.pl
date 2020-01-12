@@ -8,3 +8,4 @@ context(ctxbasicrobot, "127.0.0.1",  "TCP", "8030").
   qactor( robotmind, ctxmind, "it.unibo.robotmind.Robotmind").
   qactor( detector, ctxmind, "it.unibo.detector.Detector").
   qactor( tvocsentinel, ctxmind, "it.unibo.tvocsentinel.Tvocsentinel").
+  qactor( plasticbox, ctxmind, "it.unibo.plasticbox.Plasticbox").

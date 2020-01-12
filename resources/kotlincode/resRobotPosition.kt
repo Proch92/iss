@@ -44,10 +44,17 @@ class resRobotPosition( val owner: ActorBasic, name : String) : CoapResource( na
 			"up" -> { updatePos()                       }
 			"ua" -> { rotateLeft( )                     }
 			"ud" -> { rotateRight()                     }
+			"explore" -> {dispatchToOwner("explore")}
+			"suspend" -> {dispatchToOwner("suspend")}
+			"terminate" -> {dispatchToOwner("terminate")}
  			//else -> println("")
 		}
 		changed()	// notify all CoAp observers
  		exchange.respond(CHANGED)
+	}
+	
+	fun dispatchToOwner(cmd: String){
+		owner.scope.launch{ MsgUtil.sendMsg("$cmd","$cmd(X)",owner) }
 	}
 	
 	fun cmdToOwner(msg: String){

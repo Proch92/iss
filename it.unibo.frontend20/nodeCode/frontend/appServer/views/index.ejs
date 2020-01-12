@@ -13,10 +13,22 @@ var socket  = io.connect();
 socket.on('connect', function(){ 
 	console.log("socket connected");
 });
-socket.on( 'message', function(v){ 
+socket.on( 'message', function(v){
+  if (!("TextDecoder" in window))
+    alert("Sorry, this browser does not support TextDecoder...");
+
+  var enc = new TextDecoder("utf-8");
+  v = enc.decode(v)
+
   console.log("RECEIVED " + v);
-  if( v.indexOf("distance")  >= 0 ){document.getElementById('sonarRobotDisplay').innerHTML=v; }
-  if( v.indexOf("pos")       >= 0 ){document.getElementById('robotDisplay').innerHTML=v; }
+  if( v.indexOf("distance") >= 0 ){document.getElementById('sonarRobotDisplay').innerHTML=v;}
+  if( v.indexOf("pos") >= 0 ){document.getElementById('robotDisplay').innerHTML=v; }
+  if( v.indexOf("status") >= 0 ){document.getElementById('statusDisplay').innerHTML=v; }
+  if( v.indexOf("plasticBox") >= 0 ){document.getElementById('plasticBoxDisplay').innerHTML=v; }
+  if( v.indexOf("map") >= 0 ) {
+  	v = v.replace(/\|/g, "<br>")
+  	document.getElementById('mapDisplay').innerHTML=v;
+  }
   //if( v.indexOf("obstacle")  >= 0 ){document.getElementById('infoDisplay').innerHTML=v; }
   //if( v.indexOf("polar")     >= 0 ){document.getElementById('sonarRobotDisplay').innerHTML=v; }
 
@@ -150,14 +162,18 @@ that emits modelChange
  		<b>ROBOT STATE</b>: <span id="robotDisplay"></span>
   	</div>
 	<div>
- 		<b>INFO</b>: <span id="infoDisplay"></span>
+ 		<b>SUSPENDED</b>: <span id="statusDisplay"></span>
   	</div>
 	<div>
   		<b>SONAR STATE</b>: <span id="sonarRobotDisplay"></span>
 	</div>
 	<div>
-  		<b>ROOM MAP</b>: <span id="mapDisplay"></span>
+  		<b>PLASTIC BOX CARGO</b>: <span id="plasticBoxDisplay"></span>
 	</div>
+	<div>
+  		<b>ROOM MAP</b>: 
+	</div>
+	<div id="mapDisplay"></div>
 
 </div>
 <center></center>

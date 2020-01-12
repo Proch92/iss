@@ -7,6 +7,10 @@ const coap             = require("node-coap-client").CoapClient;
 var coapAddr             = "coap://localhost:5683"
 var coapResourceAddr   	 = coapAddr + "/robot/pos"
 var sensorResourceAddr   = coapAddr + "/robot/sonar"
+var robotStatusRes	     = coapAddr + "/robot/status"
+var environmentMapRes    = coapAddr + "/robot/map"
+var plasticBoxContentRes = coapAddr + "/plasticBox/content"
+
 /*
 coap
     .tryToConnect( coapAddr )
@@ -42,8 +46,11 @@ exports.setcoapAddr = function ( addr ){
 	//coapResourceAddr   = coapAddr + "/robot/pos" // coap://localhost:5683/robot/pos
 	coapResourceAddr = addr
 	console.log("coap | coapResourceAddr=" + coapResourceAddr);
-	createCoapClient( coapResourceAddr   );
-	createCoapClient( sensorResourceAddr );
+	createCoapClient(coapResourceAddr);
+	createCoapClient(sensorResourceAddr);
+	createCoapClient(robotStatusRes);
+	createCoapClient(plasticBoxContentRes);
+	createCoapClient(environmentMapRes);
 }
 
 exports.coapGet = function (  ){

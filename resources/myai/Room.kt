@@ -20,7 +20,7 @@ class Room {
 	}
 
 	fun coapPublish(actor:ActorBasic) {
-		var serialized = ""
+		var serialized : String = ""
 		for (y in 0..room.max_y) {
 			for (x in 0..room.max_x) {
 				serialized += typeToString(get(x, y))
@@ -28,7 +28,10 @@ class Room {
 			serialized += "|"
 		}
 
-		kotlincode.coapSupport.updateResource(actor, "env/map", serialized)
+		serialized = "map(" + serialized + ")"
+		println(serialized)
+		
+		kotlincode.coapSupport.updateResource(actor, "robot/map", serialized)
 	}
 
 	fun print() {
