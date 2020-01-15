@@ -72,12 +72,16 @@ app.get('/', function(req, res) {
  app.post("/p", function(req, res,next) { handlePostMove( "p", "step",     req, res, next)});		
  app.post("/k", function(req, res,next) { handlePostMove( "k", "stepstop", req, res ,next)});	
  app.post("/b", function(req, res,next) { handlePostMove( "b", "boundary", req, res ,next)}); 
- app.post("/plastic", function(req, res,next) { handlePostEvent( "itsPlastic", req, res ,next)}); 
- app.post("/obstacle", function(req, res,next) { handlePostEvent( "itsObstacle", req, res ,next)});	  
  app.post("/explore", function(req, res,next) { handlePostMove( "explore", "explore", req, res ,next)}); 
  app.post("/suspend", function(req, res,next) { handlePostMove( "suspend", "suspend", req, res ,next)}); 
  app.post("/terminate", function(req, res,next) { handlePostMove( "terminate", "terminate", req, res ,next)});
  		
+//PROTO SIM
+ app.post("/plastic", function(req, res,next) { handlePostEvent( "itsPlastic", req, res ,next)}); 
+ app.post("/obstacle", function(req, res,next) { handlePostEvent( "itsObstacle", req, res ,next)});	  
+ app.post("/tvochigh", function(req, res,next) { handlePostEvent( "tvocHigh", req, res ,next)}); 
+ app.post("/tvoclow", function(req, res,next) { handlePostEvent( "tvocLow", req, res ,next)}); 
+ 
 
 function handlePostMove( cmd, msg, req, res, next ){
   result = "applCode | Web server done: " + cmd
