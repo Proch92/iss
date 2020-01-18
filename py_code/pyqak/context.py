@@ -111,5 +111,8 @@ class ExternalContext(Context):
         encoded = messages.natali_encode(msg)
         encoded = str(encoded) + '\n'
         encoded = encoded.encode()
-        self.writer.write(encoded)
-        await self.writer.drain()
+        try:
+            self.writer.write(encoded)
+            await self.writer.drain()
+        except Exception as e:
+            print("tcp send failed. broken writer")
