@@ -31,9 +31,9 @@ Event boxCannotAccept : boxCannotAccept(X)
 Event itsPlastic : itsPlastic(X)
 Event itsObstacle : itsObstacle(X)
 
-Context ctxMind			ip [ host= "192.168.1.92"	port= 8020 ] +mqtt
-// Context ctxBasicRobot	ip [ host= "192.168.1.117"	port= 8030 ]
-Context ctxBasicRobot	ip [ host= "127.0.0.1"	port= 8030 ]
+Context ctxMind			ip [ host= "192.168.1.7"	port= 8020 ] +mqtt
+Context ctxBasicRobot	ip [ host= "192.168.1.119"	port= 8030 ]
+// Context ctxBasicRobot	ip [ host= "127.0.0.1"	port= 8030 ]
 
 ExternalQActor robot context ctxBasicRobot 
 
@@ -322,6 +322,7 @@ QActor plasticbox context ctxMind {
 	val WithResource = true
 	"]
 	State init initial {
+		delay 1000
 		if "( WithResource )" {
 			run kotlincode.coapSupport.updateResource(myself, "plasticBox/content", "plasticBox($bottles)")
 		}

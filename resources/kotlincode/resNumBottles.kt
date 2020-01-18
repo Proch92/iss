@@ -9,7 +9,7 @@ import org.eclipse.californium.core.CoapServer
 import it.unibo.kactor.ActorBasic
 
 class resNumBottles( val owner: ActorBasic, name : String) : CoapResource( name ){
-	var numBottles = 0;
+	var numBottles = "0";
 	
 	init{
 		setObservable(true)

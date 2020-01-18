@@ -72,23 +72,28 @@ class ExternalContext(Context):
         super().__init__(name, host, port)
         self.actors = []
 
-    async def init(self):
-        self.reader, self.writer = await asyncio.open_connection(self.host, self.port)
-
     async def run(self):
         while(True):
-            data = await self.reader.readline()
-            data = data.decode()
-            msg = messages.parse_message(data)
-            if msg:
-                print('received ', str(msg))
-                if msg._type == 'reply':
-                    for ctx in pyqak.contexts:
-                        if msg._to in ctx.actors:
-                            await ctx.send_message(msg)
+            try:
+                print(f"trying to connect to external context {self.name}")
+                self.reader, self.writer = await asyncio.open_connection(self.host, self.port)
 
-        self.writer.close()
-        await self.writer.wait_closed()
+                while(True):
+                    data = await self.reader.readline()
+                    data = data.decode()
+                    msg = messages.parse_message(data)
+                    if msg:
+                        print('received ', str(msg))
+                        if msg._type == 'reply':
+                            for ctx in pyqak.contexts:
+                                if msg._to in ctx.actors:
+                                    await ctx.send_message(msg)
+                self.writer.close()
+                await self.writer.wait_closed()
+            except Exception as e:
+                print(f"connection attempt failed to {self.name}. retrying in 1 second...")
+
+            await asyncio.sleep(1)
 
     def actor_scope(self, name):
         print('cannot open an actor scope for an external context')

@@ -2,8 +2,8 @@
 % robotmind description   
 %====================================================================================
 mqttBroker("localhost", "1884").
-context(ctxmind, "192.168.1.92",  "MQTT", "8020").
-context(ctxbasicrobot, "127.0.0.1",  "TCP", "8030").
+context(ctxmind, "192.168.1.7",  "MQTT", "8020").
+context(ctxbasicrobot, "192.168.1.119",  "TCP", "8030").
  qactor( robot, ctxbasicrobot, "external").
   qactor( robotmind, ctxmind, "it.unibo.robotmind.Robotmind").
   qactor( detector, ctxmind, "it.unibo.detector.Detector").

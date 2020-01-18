@@ -23,6 +23,7 @@ class Plasticbox ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 		return { //this:ActionBasciFsm
 				state("init") { //this:State
 					action { //it:State
+						delay(1000) 
 						if(( WithResource )){ kotlincode.coapSupport.updateResource(myself ,"plasticBox/content", "plasticBox($bottles)" )
 						 }
 					}
