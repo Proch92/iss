@@ -78,7 +78,9 @@ class Planner (room: Room) {
 				nextmove = move(nextc)
 			}
 			actor.forward("step", "step(500)", "robotmind")
+			delay(750)
 		}
+		println("Planner | executePlan | plan execution done")
     }
 
     fun nextCell() : Pair<Int, Int> {

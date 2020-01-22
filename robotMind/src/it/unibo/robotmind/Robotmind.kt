@@ -130,6 +130,9 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 					action { //it:State
 						println("robotmind | revertStep")
 						forward("cmd", "cmd(s)" ,"robot" ) 
+						
+								val reduced = (Duration * 0.8)
+								Duration = reduced.toLong()
 						stateTimer = TimerActor("timer_revertStep", 
 							scope, context!!, "local_tout_robotmind_revertStep", Duration )
 					}

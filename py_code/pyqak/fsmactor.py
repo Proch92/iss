@@ -42,6 +42,8 @@ class FSMactor(Actor):
 
     async def emit(self, _id, payload):
         msg = Message(_id, 'event', self.name, 'nan', payload)
+        msg = natali_encode(msg)
+        print(msg)
         await self.context.emit(msg)
 
     async def sleep(self, sec):

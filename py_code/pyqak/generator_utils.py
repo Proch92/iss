@@ -15,7 +15,7 @@ def clip(stream, clip_low=0, clip_high=200):
 def discard_malformed(stream):
     for val in stream:
         if val >= 0 and val < 10**3:
-            yield clipped
+            yield val
 
 
 def avg_window(stream, window_size=4):

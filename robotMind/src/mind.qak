@@ -139,6 +139,10 @@ QActor robotmind context ctxMind {
 	State revertStep {
 		println("robotmind | revertStep")
 		forward robot -m cmd : cmd(s)
+		["
+		val reduced = (Duration * 0.8)
+		Duration = reduced.toLong()
+		"]
 	}
 	Transition trevert
 		whenTimeVar Duration -> stopRevert
@@ -158,20 +162,25 @@ QActor detector context ctxMind {
 	val room = myai.Room()
 	val dfs = myai.DFSUtil(room)
 	val planner = myai.Planner(room)
-	val StepDuration = 500
+	val StepDuration = 650
 	var Goal : Pair<Int, Int> = Pair(0, 0)
 	var Suspended = false
 	"]
-	State init initial {
-		println("detector | init")
+	
+	State init initial {}
+	Goto init2
+	
+	State init2 {
+		println("detector | init2")
 		["
 		dfs.movedOn(Pair(0, 0))
 		room.print()
 		"]
 	}
-	Goto activateResource  if "WithResource" else idle
+	Goto activateResource if "WithResource" else idle
 	
 	State activateResource{
+		println("detector | activateResource")
 		run kotlincode.resServer.init(myself)
 		run kotlincode.coapSupport.init("coap://localhost:5683")
 		delay 1000 
@@ -280,7 +289,11 @@ QActor detector context ctxMind {
 	
 	State plasticFound {
 		println("detector | plasticFound")
-		["CurrentTrash += 1"]
+		["
+		CurrentTrash += 1
+		val (gx, gy) = Goal
+		room.put(gx, gy, myai.Type.FREE)
+		"]
 	}
 	Goto discharge if "(MaxTrash == CurrentTrash)" else explore
 	

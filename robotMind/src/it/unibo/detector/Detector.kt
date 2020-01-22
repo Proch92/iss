@@ -22,13 +22,18 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 			val room = myai.Room()
 			val dfs = myai.DFSUtil(room)
 			val planner = myai.Planner(room)
-			val StepDuration = 500
+			val StepDuration = 650
 			var Goal : Pair<Int, Int> = Pair(0, 0)
 			var Suspended = false
 		return { //this:ActionBasciFsm
 				state("init") { //this:State
 					action { //it:State
-						println("detector | init")
+					}
+					 transition( edgeName="goto",targetState="init2", cond=doswitch() )
+				}	 
+				state("init2") { //this:State
+					action { //it:State
+						println("detector | init2")
 						
 								dfs.movedOn(Pair(0, 0))
 								room.print()
@@ -38,6 +43,7 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("activateResource") { //this:State
 					action { //it:State
+						println("detector | activateResource")
 						kotlincode.resServer.init(myself)
 						kotlincode.coapSupport.init( "coap://localhost:5683"  )
 						delay(1000) 
@@ -151,7 +157,10 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("plasticFound") { //this:State
 					action { //it:State
 						println("detector | plasticFound")
-						CurrentTrash += 1
+						
+								CurrentTrash += 1
+								val (gx, gy) = Goal
+								room.put(gx, gy, myai.Type.FREE)
 					}
 					 transition( edgeName="goto",targetState="discharge", cond=doswitchGuarded({(MaxTrash == CurrentTrash)}) )
 					transition( edgeName="goto",targetState="explore", cond=doswitchGuarded({! (MaxTrash == CurrentTrash)}) )

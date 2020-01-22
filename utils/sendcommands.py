@@ -1,8 +1,8 @@
 import socket
 import time
 
-ACTOR_NAME = "robotmind"
-PORT = 8020
+ACTOR_NAME = "robot"
+PORT = 8030
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

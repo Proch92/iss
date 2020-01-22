@@ -72,6 +72,9 @@ class ExternalContext(Context):
         super().__init__(name, host, port)
         self.actors = []
 
+    async def init(self):
+        pass
+
     async def run(self):
         while(True):
             try:
