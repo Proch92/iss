@@ -176,6 +176,9 @@ QActor detector context ctxMind {
 		dfs.movedOn(Pair(0, 0))
 		room.print()
 		"]
+		if "( WithResource )" {
+			run kotlincode.coapSupport.updateResource(myself, "robot/box", "box($CurrentTrash)")
+		}
 	}
 	Goto activateResource if "WithResource" else idle
 	
@@ -274,6 +277,9 @@ QActor detector context ctxMind {
 		if "(Goal == Pair(0, 0))" {
 			forward plasticbox -m unload : unload($CurrentTrash)
 			["CurrentTrash = 0"]
+			if "( WithResource )" {
+				run kotlincode.coapSupport.updateResource(myself, "robot/box", "box($CurrentTrash)")
+			}
 		}
 	}
 	Goto explore if "(Suspended == false)" else sleep
@@ -294,6 +300,9 @@ QActor detector context ctxMind {
 		val (gx, gy) = Goal
 		room.put(gx, gy, myai.Type.FREE)
 		"]
+		if "( WithResource )" {
+			run kotlincode.coapSupport.updateResource(myself, "robot/box", "box($CurrentTrash)")
+		}
 	}
 	Goto discharge if "(MaxTrash == CurrentTrash)" else explore
 	
