@@ -31,7 +31,7 @@ Event boxCannotAccept : boxCannotAccept(X)
 Event itsPlastic : itsPlastic(X)
 Event itsObstacle : itsObstacle(X)
 
-Context ctxMind			ip [ host= "192.168.1.7"	port= 8020 ] +mqtt
+Context ctxMind			ip [ host= "192.168.1.128"	port= 8020 ] +mqtt
 Context ctxBasicRobot	ip [ host= "192.168.1.119"	port= 8030 ]
 // Context ctxBasicRobot	ip [ host= "127.0.0.1"	port= 8030 ]
 
@@ -176,9 +176,6 @@ QActor detector context ctxMind {
 		dfs.movedOn(Pair(0, 0))
 		room.print()
 		"]
-		if "( WithResource )" {
-			run kotlincode.coapSupport.updateResource(myself, "robot/box", "box($CurrentTrash)")
-		}
 	}
 	Goto activateResource if "WithResource" else idle
 	
@@ -188,6 +185,7 @@ QActor detector context ctxMind {
 		run kotlincode.coapSupport.init("coap://localhost:5683")
 		delay 1000 
 		run kotlincode.resourceObserver.init("coap://localhost:5683","robot/pos")
+		run kotlincode.coapSupport.updateResource(myself, "robot/box", "box($CurrentTrash)")
 	}
 	Goto idle
 	

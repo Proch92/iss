@@ -8,7 +8,7 @@ import org.eclipse.californium.core.coap.CoAP.ResponseCode.DELETED;
 import org.eclipse.californium.core.CoapServer
 import it.unibo.kactor.ActorBasic
 
-class resRobotStatus( val owner: ActorBasic, name : String) : CoapResource( name ){
+class resRobotBox( val owner: ActorBasic, name : String) : CoapResource( name ){
 	var box = "";
 	
 	init{

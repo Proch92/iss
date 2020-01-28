@@ -48,6 +48,7 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						kotlincode.coapSupport.init( "coap://localhost:5683"  )
 						delay(1000) 
 						kotlincode.resourceObserver.init( "coap://localhost:5683", "robot/pos"  )
+						kotlincode.coapSupport.updateResource(myself ,"robot/box", "box($CurrentTrash)" )
 					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
@@ -141,6 +142,8 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						println("detector | goalAchieved")
 						if((Goal == Pair(0, 0))){ forward("unload", "unload($CurrentTrash)" ,"plasticbox" ) 
 						CurrentTrash = 0
+						if(( WithResource )){ kotlincode.coapSupport.updateResource(myself ,"robot/box", "box($CurrentTrash)" )
+						 }
 						 }
 					}
 					 transition( edgeName="goto",targetState="explore", cond=doswitchGuarded({(Suspended == false)}) )
@@ -161,6 +164,8 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 								CurrentTrash += 1
 								val (gx, gy) = Goal
 								room.put(gx, gy, myai.Type.FREE)
+						if(( WithResource )){ kotlincode.coapSupport.updateResource(myself ,"robot/box", "box($CurrentTrash)" )
+						 }
 					}
 					 transition( edgeName="goto",targetState="discharge", cond=doswitchGuarded({(MaxTrash == CurrentTrash)}) )
 					transition( edgeName="goto",targetState="explore", cond=doswitchGuarded({! (MaxTrash == CurrentTrash)}) )

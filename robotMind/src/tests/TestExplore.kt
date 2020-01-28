@@ -12,7 +12,7 @@ import org.eclipse.californium.core.CoapClient
 import org.eclipse.californium.core.coap.MediaTypeRegistry
 import org.eclipse.californium.core.CoapResponse
 
-class TestManyNodesRobcmd {
+class TestExplore {
 	lateinit var client : CoapClient
 	
 	@Before
