@@ -11,24 +11,31 @@ import kotlinx.coroutines.runBlocking
 class Tvocsentinel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
  	
 	override fun getInitialState() : String{
-		return "idle"
+		return "init"
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		return { //this:ActionBasciFsm
+				state("init") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
+				}	 
 				state("idle") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t01",targetState="checkLevel",cond=whenEvent("tvoc"))
+					 transition(edgeName="t018",targetState="suspendRobot",cond=whenEvent("tvocHigh"))
+					transition(edgeName="t019",targetState="wakeupRobot",cond=whenEvent("tvocLow"))
 				}	 
-				state("checkLevel") { //this:State
+				state("suspendRobot") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("tvoc(PPM)"), Term.createTerm("tvoc(PPM)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								val tvocHigh = (payloadArg(0).toInt() > 500)
-								if((tvocHigh)){ forward("suspend", "suspend(X)" ,"detector" ) 
-								 }
-						}
+						forward("suspend", "suspend(X)" ,"detector" ) 
+					}
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
+				}	 
+				state("wakeupRobot") { //this:State
+					action { //it:State
+						forward("wakeup", "wakeup(X)" ,"detector" ) 
 					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
