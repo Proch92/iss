@@ -1,0 +1,67 @@
+System roomcleaner
+
+Dispatch explore : explore(X)
+Dispatch suspend : suspend(X)
+Dispatch terminate : terminate(X)
+Event tvoc : tvoc(PPM)
+
+Event obstacle : obstacle(DISTANCE)
+
+Dispatch dump : dump(NB)
+
+Context ctx ip [host="localhost" port=8020]
+
+QActor plasticbox context ctx {
+	State idle initial {}
+	Transition t0
+		whenMsg dump -> sDump
+	
+	State sDump {
+		// keep track of container's content
+	}
+	Goto idle
+}
+
+QActor tvocsentinel context ctx {
+	State idle initial {}
+	Transition t0
+		whenEvent tvoc -> checkLevel
+	
+	State checkLevel {
+		onMsg(tvoc : tvoc(PPM)) {
+			["val tvocHigh = (payloadArg(0).toInt() > 500)"]
+			if "(tvocHigh)" {forward detector -m suspend : suspend(X)}
+		}
+	}
+	Goto idle
+}
+
+QActor detector context ctx {
+	State idle initial {}
+	Transition t0
+		whenMsg explore -> sExplore
+	
+	State sExplore {
+		//wander the room in search of plastic objects
+	}
+	Transition t1
+		whenEvent obstacle -> checkObstacle
+		whenMsg terminate -> goEmpty
+		whenMsg suspend -> goHome
+	
+	State checkObstacle {
+		//pick it up if it's plastic
+		//keep memory of it otherwise and go on
+	}
+	Goto sExplore
+	
+	State goEmpty {
+		//reach the plasticBox and dump the plastic
+	}
+	Goto goHome
+	
+	State goHome {
+		//reach detectorBox
+	}
+	Goto idle
+}

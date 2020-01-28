@@ -11,168 +11,37 @@ import kotlinx.coroutines.runBlocking
 class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
  	
 	override fun getInitialState() : String{
-		return "init"
+		return "idle"
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		
-			val WithResource = true
-			val MaxTrash = 2
-			var CurrentTrash = 0
-			val room = myai.Room()
-			val dfs = myai.DFSUtil(room)
-			val planner = myai.Planner(room)
-			val StepDuration = 650
-			var Goal : Pair<Int, Int> = Pair(0, 0)
-			var Suspended = false
 		return { //this:ActionBasciFsm
-				state("init") { //this:State
-					action { //it:State
-					}
-					 transition( edgeName="goto",targetState="init2", cond=doswitch() )
-				}	 
-				state("init2") { //this:State
-					action { //it:State
-						println("detector | init2")
-						
-								dfs.movedOn(Pair(0, 0))
-								room.print()
-					}
-					 transition( edgeName="goto",targetState="activateResource", cond=doswitchGuarded({WithResource}) )
-					transition( edgeName="goto",targetState="idle", cond=doswitchGuarded({! WithResource}) )
-				}	 
-				state("activateResource") { //this:State
-					action { //it:State
-						println("detector | activateResource")
-						kotlincode.resServer.init(myself)
-						kotlincode.coapSupport.init( "coap://localhost:5683"  )
-						delay(1000) 
-						kotlincode.resourceObserver.init( "coap://localhost:5683", "robot/pos"  )
-					}
-					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
-				}	 
 				state("idle") { //this:State
 					action { //it:State
-						println("detector | idle")
-						
-								if (WithResource) room.coapPublish(myself)
-								room.print()
 					}
-					 transition(edgeName="t08",targetState="explore",cond=whenDispatch("explore"))
+					 transition(edgeName="t02",targetState="sExplore",cond=whenDispatch("explore"))
 				}	 
-				state("sleep") { //this:State
+				state("sExplore") { //this:State
 					action { //it:State
-						println("detector | sleep")
 					}
-					 transition(edgeName="tsleep9",targetState="idle",cond=whenDispatch("wakeup"))
+					 transition(edgeName="t13",targetState="checkObstacle",cond=whenEvent("obstacle"))
+					transition(edgeName="t14",targetState="goEmpty",cond=whenDispatch("terminate"))
+					transition(edgeName="t15",targetState="goHome",cond=whenDispatch("suspend"))
 				}	 
-				state("discharge") { //this:State
+				state("checkObstacle") { //this:State
 					action { //it:State
-						println("detector | discharge")
-						request("canDump", "canDump($CurrentTrash)" ,"plasticbox" )  
 					}
-					 transition(edgeName="twaitAccept10",targetState="goHome",cond=whenReply("dumpAccept"))
-					transition(edgeName="twaitAccept11",targetState="notifyDumpFull",cond=whenReply("dumpFull"))
+					 transition( edgeName="goto",targetState="sExplore", cond=doswitch() )
 				}	 
-				state("notifyDumpFull") { //this:State
+				state("goEmpty") { //this:State
 					action { //it:State
-						println("detector | notifyDumpFull")
-						emit("boxCannotAccept", "boxCannotAccept(X)" ) 
-					}
-					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
-				}	 
-				state("goHome") { //this:State
-					action { //it:State
-						println("detector | goHome")
-						
-								Goal = Pair(0, 0)
-								planner.new_plan(Goal)
-								planner.executePlan(myself)
-					}
-					 transition( edgeName="goto",targetState="waitPlanCompletion", cond=doswitch() )
-				}	 
-				state("ssuspend") { //this:State
-					action { //it:State
-						println("detector | ssuspend")
-						Suspended = true
-						if((WithResource)){ kotlincode.coapSupport.updateResource(myself ,"robot/status", "status(suspended)" )
-						 }
 					}
 					 transition( edgeName="goto",targetState="goHome", cond=doswitch() )
 				}	 
-				state("explore") { //this:State
+				state("goHome") { //this:State
 					action { //it:State
-						println("detector | explore")
-						
-								Suspended = false
-								Goal = dfs.next()
-								println(Goal)
-								planner.new_plan(Goal)
-								planner.executePlan(myself)
-								room.print()
-						if((WithResource)){ kotlincode.coapSupport.updateResource(myself ,"robot/status", "status(active)" )
-						 }
 					}
-					 transition( edgeName="goto",targetState="waitPlanCompletion", cond=doswitch() )
-				}	 
-				state("waitPlanCompletion") { //this:State
-					action { //it:State
-						println("detector | waitPlanCompletion")
-					}
-					 transition(edgeName="twait12",targetState="checkGoal",cond=whenEvent("stepdone"))
-					transition(edgeName="twait13",targetState="askObstacle",cond=whenEvent("stepfail"))
-					transition(edgeName="twait14",targetState="ssuspend",cond=whenDispatch("suspend"))
-				}	 
-				state("checkGoal") { //this:State
-					action { //it:State
-						println("detector | checkGoal")
-						
-								val cur_x = myai.RobotState.x
-								val cur_y = myai.RobotState.y
-								dfs.movedOn(Pair(cur_x, cur_y))
-								room.print()
-								if (WithResource) room.coapPublish(myself)
-					}
-					 transition( edgeName="goto",targetState="goalAchieved", cond=doswitchGuarded({(Pair(myai.RobotState.x, myai.RobotState.y) == Goal)}) )
-					transition( edgeName="goto",targetState="waitPlanCompletion", cond=doswitchGuarded({! (Pair(myai.RobotState.x, myai.RobotState.y) == Goal)}) )
-				}	 
-				state("goalAchieved") { //this:State
-					action { //it:State
-						println("detector | goalAchieved")
-						if((Goal == Pair(0, 0))){ forward("unload", "unload($CurrentTrash)" ,"plasticbox" ) 
-						CurrentTrash = 0
-						 }
-					}
-					 transition( edgeName="goto",targetState="explore", cond=doswitchGuarded({(Suspended == false)}) )
-					transition( edgeName="goto",targetState="sleep", cond=doswitchGuarded({! (Suspended == false)}) )
-				}	 
-				state("askObstacle") { //this:State
-					action { //it:State
-						println("detector | askObstalce")
-					}
-					 transition(edgeName="task15",targetState="plasticFound",cond=whenEvent("itsPlastic"))
-					transition(edgeName="task16",targetState="obstacleFound",cond=whenEvent("itsObstacle"))
-					transition(edgeName="task17",targetState="ssuspend",cond=whenDispatch("suspend"))
-				}	 
-				state("plasticFound") { //this:State
-					action { //it:State
-						println("detector | plasticFound")
-						
-								CurrentTrash += 1
-								val (gx, gy) = Goal
-								room.put(gx, gy, myai.Type.FREE)
-					}
-					 transition( edgeName="goto",targetState="discharge", cond=doswitchGuarded({(MaxTrash == CurrentTrash)}) )
-					transition( edgeName="goto",targetState="explore", cond=doswitchGuarded({! (MaxTrash == CurrentTrash)}) )
-				}	 
-				state("obstacleFound") { //this:State
-					action { //it:State
-						println("detector | obstacleFound")
-						
-								val (gx, gy) = Goal
-								room.put(gx, gy, myai.Type.OBSTACLE)
-					}
-					 transition( edgeName="goto",targetState="explore", cond=doswitch() )
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
 			}
 		}
