@@ -123,6 +123,7 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 					 transition(edgeName="twait12",targetState="checkGoal",cond=whenEvent("stepdone"))
 					transition(edgeName="twait13",targetState="askObstacle",cond=whenEvent("stepfail"))
 					transition(edgeName="twait14",targetState="ssuspend",cond=whenDispatch("suspend"))
+					transition(edgeName="twait15",targetState="goHome",cond=whenDispatch("terminate"))
 				}	 
 				state("checkGoal") { //this:State
 					action { //it:State
@@ -153,9 +154,10 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 					action { //it:State
 						println("detector | askObstalce")
 					}
-					 transition(edgeName="task15",targetState="plasticFound",cond=whenEvent("itsPlastic"))
-					transition(edgeName="task16",targetState="obstacleFound",cond=whenEvent("itsObstacle"))
-					transition(edgeName="task17",targetState="ssuspend",cond=whenDispatch("suspend"))
+					 transition(edgeName="task16",targetState="plasticFound",cond=whenEvent("itsPlastic"))
+					transition(edgeName="task17",targetState="obstacleFound",cond=whenEvent("itsObstacle"))
+					transition(edgeName="task18",targetState="ssuspend",cond=whenDispatch("suspend"))
+					transition(edgeName="task19",targetState="goHome",cond=whenDispatch("terminate"))
 				}	 
 				state("plasticFound") { //this:State
 					action { //it:State

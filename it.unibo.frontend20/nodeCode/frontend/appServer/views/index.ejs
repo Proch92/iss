@@ -25,6 +25,7 @@ socket.on( 'message', function(v){
   if( v.indexOf("pos") >= 0 ){document.getElementById('robotDisplay').innerHTML=v; }
   if( v.indexOf("status") >= 0 ){document.getElementById('statusDisplay').innerHTML=v; }
   if( v.indexOf("plasticBox") >= 0 ){document.getElementById('plasticBoxDisplay').innerHTML=v; }
+  if( v.indexOf("box") >= 0 ){document.getElementById('robotBoxDisplay').innerHTML=v; }
   if( v.indexOf("map") >= 0 ) {
   	v = v.replace(/\|/g, "<br>")
   	document.getElementById('mapDisplay').innerHTML=v;
@@ -176,7 +177,7 @@ that emits modelChange
 </div>
 <div style="background-color: #FAF19C">
 	<div>
- 		<b>ROBOT STATE</b>: <span id="robotDisplay"></span>
+ 		<b>ROBOT CARGO</b>: <span id="robotBoxDisplay"></span>
   	</div>
 	<div>
  		<b>SUSPENDED</b>: <span id="statusDisplay"></span>

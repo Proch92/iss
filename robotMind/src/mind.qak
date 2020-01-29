@@ -17,6 +17,7 @@ Event stepfail	: stepfail(DURATION, CAUSE)
 Dispatch stop	: stop(X)
 Dispatch cmd	: cmd(X)
 Dispatch suspend: suspend(X)
+Dispatch terminate: terminate(X)
 Dispatch explore: explore(X)
 Dispatch wakeup	: wakeup(X)
 Event obstacle	: obstacle(DISTANCE)
@@ -257,6 +258,7 @@ QActor detector context ctxMind {
 		whenEvent stepdone -> checkGoal
 		whenEvent stepfail -> askObstacle
 		whenMsg suspend	-> ssuspend
+		whenMsg terminate -> goHome
 	
 	State checkGoal {
 		println("detector | checkGoal")
@@ -290,6 +292,7 @@ QActor detector context ctxMind {
 		whenEvent itsPlastic -> plasticFound
 		whenEvent itsObstacle -> obstacleFound
 		whenMsg suspend	-> ssuspend
+		whenMsg terminate -> goHome
 	
 	State plasticFound {
 		println("detector | plasticFound")

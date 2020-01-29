@@ -9,6 +9,7 @@ var coapResourceAddr   	 = coapAddr + "/robot/pos"
 var sensorResourceAddr   = coapAddr + "/robot/sonar"
 var robotStatusRes	     = coapAddr + "/robot/status"
 var environmentMapRes    = coapAddr + "/robot/map"
+var robotBox			 = coapAddr + "/robot/box"
 var plasticBoxContentRes = coapAddr + "/plasticBox/content"
 
 /*
@@ -49,8 +50,9 @@ exports.setcoapAddr = function ( addr ){
 	createCoapClient(coapResourceAddr);
 	createCoapClient(sensorResourceAddr);
 	createCoapClient(robotStatusRes);
-	createCoapClient(plasticBoxContentRes);
+	createCoapClient(robotBox);
 	createCoapClient(environmentMapRes);
+	createCoapClient(plasticBoxContentRes);
 }
 
 exports.coapGet = function (  ){
