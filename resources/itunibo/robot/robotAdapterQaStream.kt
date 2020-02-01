@@ -42,8 +42,13 @@ class robotAdapterQaStream( name : String ) : ActorBasic( name ){
         //println("	--- robotAdapterQaStream | received  msg= $msg "  ) //msg.msgContent()=cmd(X)
 		sysUtil.traceprintln(" $tt $name | received  $msg "  ) //msg.msgContent()=cmd(X)
 		//robotAdapterQaStream receives the events raised by the actors in its context
-		if( msg.isEvent() ) return			
-		val move = (Term.createTerm(msg.msgContent()) as Struct).getArg(0).toString()
-		itunibo.robot.robotSupport.move( move  )
+		if( msg.isEvent() ) return
+		if (msg.msgId() == "cmd") {
+			val move = (Term.createTerm(msg.msgContent()) as Struct).getArg(0).toString()
+			itunibo.robot.robotSupport.move( move  )
+		} else if (msg.msgId() == "remove") {
+			//val bottleName = (Term.createTerm(msg.msgContent()) as Struct).getArg(0).toString()
+			itunibo.robot.robotSupport.remove( msg.msgContent() )
+		}
     }
 }

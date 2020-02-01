@@ -48,4 +48,8 @@ object robotSupport{
 			else       -> println( "		--- robotSupport | robot unknown" )
 		}		
 	}
+	
+	fun remove( bottleName : String ) {
+		if (robotKind == "virtual") {clientWenvObjTcp.sendMsg( bottleName )}
+	}
 }

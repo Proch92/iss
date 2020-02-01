@@ -80,8 +80,16 @@ app.get('/', function(req, res) {
  app.post("/plastic", function(req, res,next) { handlePostEvent( "itsPlastic", req, res ,next)}); 
  app.post("/obstacle", function(req, res,next) { handlePostEvent( "itsObstacle", req, res ,next)});	  
  app.post("/tvochigh", function(req, res,next) { handlePostEvent( "tvocHigh", req, res ,next)}); 
- app.post("/tvoclow", function(req, res,next) { handlePostEvent( "tvocLow", req, res ,next)}); 
+ app.post("/tvoclow", function(req, res,next) { handlePostEvent( "tvocLow", req, res ,next)});
+ app.post("/removebtl/:id", function(req, res,next) { removeBottle( req, res ,next)});
 
+
+function removeBottle(req, res, next) {
+  bottlename = req.params.id
+  emitEventMqtt( "remove", bottlename );
+  res.redirect('/')
+  next()
+}
 
 function handlePostMove( cmd, msg, req, res, next ){
   result = "applCode | Web server done: " + cmd
@@ -147,10 +155,10 @@ var publishEmitUserCmd = function( cmd ){
   mqttUtils.publish( eventstr, "unibo/qak/events" );   
 }
 
-var emitEventMqtt = function( eventname ){  
-  var eventstr = "msg(" + eventname + ",event,js,none," + eventname + "(X),1)"  ;  //TODO: replace 1 with counter
+var emitEventMqtt = function( eventname, param = "X" ){  
+  var eventstr = "msg(" + eventname + ",event,js,none," + eventname + "(" + param + "),1)"  ;  //TODO: replace 1 with counter
     console.log("applCode | emits> "+ eventstr);
-  mqttUtils.publish( eventstr, "unibo/qak/events" );   
+  mqttUtils.publish( eventstr, "unibo/qak/events" );
 }
 
 var pythonExec = function( cmd ){  

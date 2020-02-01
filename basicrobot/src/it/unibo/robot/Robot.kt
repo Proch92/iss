@@ -28,6 +28,7 @@ class Robot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 					}
 					 transition(edgeName="t00",targetState="handleCmd",cond=whenDispatch("cmd"))
 					transition(edgeName="t01",targetState="handleObstacle",cond=whenEvent("obstacle"))
+					transition(edgeName="t02",targetState="handeRemove",cond=whenEvent("remove"))
 				}	 
 				state("handleCmd") { //this:State
 					action { //it:State
@@ -35,6 +36,15 @@ class Robot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 						if( checkMsgContent( Term.createTerm("cmd(X)"), Term.createTerm("cmd(X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("cmd", "cmd(${payloadArg(0)})" ,"robotadapter" ) 
+						}
+					}
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
+				}	 
+				state("handeRemove") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("remove(NAME)"), Term.createTerm("remove(NAME)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("remove", "remove(${payloadArg(0)})" ,"robotadapter" ) 
 						}
 					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
