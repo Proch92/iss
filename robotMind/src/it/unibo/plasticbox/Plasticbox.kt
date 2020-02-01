@@ -32,8 +32,8 @@ class Plasticbox ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				state("idle") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t022",targetState="dump",cond=whenDispatch("unload"))
-					transition(edgeName="t023",targetState="handleReq",cond=whenRequest("canDump"))
+					 transition(edgeName="t026",targetState="dump",cond=whenDispatch("unload"))
+					transition(edgeName="t027",targetState="handleReq",cond=whenRequest("canDump"))
 				}	 
 				state("dump") { //this:State
 					action { //it:State

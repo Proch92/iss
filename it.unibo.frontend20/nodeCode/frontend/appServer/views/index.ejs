@@ -22,7 +22,7 @@ socket.on( 'message', function(v){
 
   console.log("RECEIVED " + v);
   if( v.indexOf("distance") >= 0 ){document.getElementById('sonarRobotDisplay').innerHTML=v;}
-  if( v.indexOf("pos") >= 0 ){document.getElementById('robotDisplay').innerHTML=v; }
+  if( v.indexOf("pos") >= 0 ){document.getElementById('robotPosDisplay').innerHTML=v; }
   if( v.indexOf("status") >= 0 ){document.getElementById('statusDisplay').innerHTML=v; }
   if( v.indexOf("plasticBox") >= 0 ){document.getElementById('plasticBoxDisplay').innerHTML=v; }
   if( v.indexOf("box") >= 0 ){document.getElementById('robotBoxDisplay').innerHTML=v; }
@@ -125,11 +125,6 @@ that emits modelChange
 							</form>
 						</td>
 						<td align="center">
-							<form action="/b" method="post">
-							  	<input type="submit" style="font-size:30px;"  value="boundary">
-							</form>
-						</td>
-						<td align="center">
 							<form action="/explore" method="post">
 							  	<input type="submit" style="font-size:30px;"  value="explore">
 							</form>
@@ -178,6 +173,9 @@ that emits modelChange
 <div style="background-color: #FAF19C">
 	<div>
  		<b>ROBOT CARGO</b>: <span id="robotBoxDisplay"></span>
+  	</div>
+  	<div>
+ 		<b>ROBOT POSITION</b>: <span id="robotPosDisplay"></span>
   	</div>
 	<div>
  		<b>SUSPENDED</b>: <span id="statusDisplay"></span>

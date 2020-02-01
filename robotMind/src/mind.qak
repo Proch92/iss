@@ -34,7 +34,7 @@ Event itsObstacle : itsObstacle(X)
 
 Context ctxMind			ip [ host= "192.168.1.128"	port= 8020 ] +mqtt
 Context ctxBasicRobot	ip [ host= "192.168.1.119"	port= 8030 ]
-// Context ctxBasicRobot	ip [ host= "127.0.0.1"	port= 8030 ]
+//Context ctxBasicRobot	ip [ host= "127.0.0.1"	port= 8030 ]
 
 ExternalQActor robot context ctxBasicRobot 
 
@@ -48,6 +48,17 @@ QActor robotmind context ctxMind {
 	State s0 initial {
 		println("robotmind | init")
 	}
+	Goto activateResource if "WithResource" else idle
+	
+	State activateResource{
+		println("detector | activateResource")
+		run kotlincode.resServer.init(myself)
+		run kotlincode.coapSupport.init("coap://localhost:5683")
+		delay 1000 
+		run kotlincode.resourceObserver.init("coap://localhost:5683","robot/pos")
+		run kotlincode.coapSupport.updateResource(myself, "robot/box", "box(0)")
+		run kotlincode.coapSupport.updateResource(myself, "robot/status", "status(active)")
+	}
 	Goto idle
 
 	State idle {
@@ -59,6 +70,24 @@ QActor robotmind context ctxMind {
 		whenRequest step	-> doStepWithAnswer
 		whenMsg cmd			-> sHandleCmd
 		whenMsg stop		-> sHandleStopUnexpected
+		whenMsg explore		-> handeExplore
+		whenMsg suspend		-> handeSuspend
+		whenMsg terminate	-> handeTerminate
+	
+	State handeExplore {
+		forward detector -m explore : explore(X)
+	}
+	Goto idle
+	
+	State handeSuspend {
+		forward detector -m suspend : suspend(X)
+	}
+	Goto idle
+	
+	State handeTerminate {
+		forward detector -m terminate : terminate(X)
+	}
+	Goto idle
 	
 	State sHandleStopUnexpected {
 		println("robotmind | sHandleStopUnexpected - not expecting stop command outside of step context")
@@ -166,27 +195,18 @@ QActor detector context ctxMind {
 	val StepDuration = 650
 	var Goal : Pair<Int, Int> = Pair(0, 0)
 	var Suspended = false
+	var planexists = true
 	"]
 	
 	State init initial {}
 	Goto init2
-	
+
 	State init2 {
 		println("detector | init2")
 		["
 		dfs.movedOn(Pair(0, 0))
 		room.print()
 		"]
-	}
-	Goto activateResource if "WithResource" else idle
-	
-	State activateResource{
-		println("detector | activateResource")
-		run kotlincode.resServer.init(myself)
-		run kotlincode.coapSupport.init("coap://localhost:5683")
-		delay 1000 
-		run kotlincode.resourceObserver.init("coap://localhost:5683","robot/pos")
-		run kotlincode.coapSupport.updateResource(myself, "robot/box", "box($CurrentTrash)")
 	}
 	Goto idle
 	
@@ -199,6 +219,7 @@ QActor detector context ctxMind {
 	}
 	Transition t0
 		whenMsg explore -> explore
+		whenMsg suspend -> ssuspend
 	
 	State sleep {
 		println("detector | sleep")
@@ -224,11 +245,11 @@ QActor detector context ctxMind {
 		println("detector | goHome")
 		["
 		Goal = Pair(0, 0)
-		planner.new_plan(Goal)
-		planner.executePlan(myself)
+		planexists = planner.new_plan(Goal)
+		if (planexists) planner.executePlan(myself)
 		"]
 	}
-	Goto waitPlanCompletion
+	Goto waitPlanCompletion if "(planexists)" else idle
 	
 	State ssuspend {
 		println("detector | ssuspend")

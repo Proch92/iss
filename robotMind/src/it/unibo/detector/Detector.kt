@@ -25,6 +25,7 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 			val StepDuration = 650
 			var Goal : Pair<Int, Int> = Pair(0, 0)
 			var Suspended = false
+			var planexists = true
 		return { //this:ActionBasciFsm
 				state("init") { //this:State
 					action { //it:State
@@ -38,18 +39,6 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 								dfs.movedOn(Pair(0, 0))
 								room.print()
 					}
-					 transition( edgeName="goto",targetState="activateResource", cond=doswitchGuarded({WithResource}) )
-					transition( edgeName="goto",targetState="idle", cond=doswitchGuarded({! WithResource}) )
-				}	 
-				state("activateResource") { //this:State
-					action { //it:State
-						println("detector | activateResource")
-						kotlincode.resServer.init(myself)
-						kotlincode.coapSupport.init( "coap://localhost:5683"  )
-						delay(1000) 
-						kotlincode.resourceObserver.init( "coap://localhost:5683", "robot/pos"  )
-						kotlincode.coapSupport.updateResource(myself ,"robot/box", "box($CurrentTrash)" )
-					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
 				state("idle") { //this:State
@@ -59,21 +48,22 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 								if (WithResource) room.coapPublish(myself)
 								room.print()
 					}
-					 transition(edgeName="t08",targetState="explore",cond=whenDispatch("explore"))
+					 transition(edgeName="t011",targetState="explore",cond=whenDispatch("explore"))
+					transition(edgeName="t012",targetState="ssuspend",cond=whenDispatch("suspend"))
 				}	 
 				state("sleep") { //this:State
 					action { //it:State
 						println("detector | sleep")
 					}
-					 transition(edgeName="tsleep9",targetState="idle",cond=whenDispatch("wakeup"))
+					 transition(edgeName="tsleep13",targetState="idle",cond=whenDispatch("wakeup"))
 				}	 
 				state("discharge") { //this:State
 					action { //it:State
 						println("detector | discharge")
 						request("canDump", "canDump($CurrentTrash)" ,"plasticbox" )  
 					}
-					 transition(edgeName="twaitAccept10",targetState="goHome",cond=whenReply("dumpAccept"))
-					transition(edgeName="twaitAccept11",targetState="notifyDumpFull",cond=whenReply("dumpFull"))
+					 transition(edgeName="twaitAccept14",targetState="goHome",cond=whenReply("dumpAccept"))
+					transition(edgeName="twaitAccept15",targetState="notifyDumpFull",cond=whenReply("dumpFull"))
 				}	 
 				state("notifyDumpFull") { //this:State
 					action { //it:State
@@ -87,10 +77,11 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						println("detector | goHome")
 						
 								Goal = Pair(0, 0)
-								planner.new_plan(Goal)
-								planner.executePlan(myself)
+								planexists = planner.new_plan(Goal)
+								if (planexists) planner.executePlan(myself)
 					}
-					 transition( edgeName="goto",targetState="waitPlanCompletion", cond=doswitch() )
+					 transition( edgeName="goto",targetState="waitPlanCompletion", cond=doswitchGuarded({(planexists)}) )
+					transition( edgeName="goto",targetState="idle", cond=doswitchGuarded({! (planexists)}) )
 				}	 
 				state("ssuspend") { //this:State
 					action { //it:State
@@ -120,10 +111,10 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 					action { //it:State
 						println("detector | waitPlanCompletion")
 					}
-					 transition(edgeName="twait12",targetState="checkGoal",cond=whenEvent("stepdone"))
-					transition(edgeName="twait13",targetState="askObstacle",cond=whenEvent("stepfail"))
-					transition(edgeName="twait14",targetState="ssuspend",cond=whenDispatch("suspend"))
-					transition(edgeName="twait15",targetState="goHome",cond=whenDispatch("terminate"))
+					 transition(edgeName="twait16",targetState="checkGoal",cond=whenEvent("stepdone"))
+					transition(edgeName="twait17",targetState="askObstacle",cond=whenEvent("stepfail"))
+					transition(edgeName="twait18",targetState="ssuspend",cond=whenDispatch("suspend"))
+					transition(edgeName="twait19",targetState="goHome",cond=whenDispatch("terminate"))
 				}	 
 				state("checkGoal") { //this:State
 					action { //it:State
@@ -154,10 +145,10 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 					action { //it:State
 						println("detector | askObstalce")
 					}
-					 transition(edgeName="task16",targetState="plasticFound",cond=whenEvent("itsPlastic"))
-					transition(edgeName="task17",targetState="obstacleFound",cond=whenEvent("itsObstacle"))
-					transition(edgeName="task18",targetState="ssuspend",cond=whenDispatch("suspend"))
-					transition(edgeName="task19",targetState="goHome",cond=whenDispatch("terminate"))
+					 transition(edgeName="task20",targetState="plasticFound",cond=whenEvent("itsPlastic"))
+					transition(edgeName="task21",targetState="obstacleFound",cond=whenEvent("itsObstacle"))
+					transition(edgeName="task22",targetState="ssuspend",cond=whenDispatch("suspend"))
+					transition(edgeName="task23",targetState="goHome",cond=whenDispatch("terminate"))
 				}	 
 				state("plasticFound") { //this:State
 					action { //it:State

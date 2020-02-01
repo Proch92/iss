@@ -27,7 +27,7 @@ class resRobotPosition( val owner: ActorBasic, name : String) : CoapResource( na
 		//println("resource $name  | GET: ${exchange.getRequestText()} pos=$pos moving=$moving" )
 //		if( moving ) exchange.respond( "pos unknown / $direction / moving=$moving" )
 //		else
-			exchange.respond( "$pos / $direction"  )  // moving=$moving" 
+			exchange.respond( "pos($pos / $direction)"  )  // moving=$moving" 
 	}
 //	override fun handlePOST( exchange : CoapExchange ) {
 //	}
@@ -54,6 +54,7 @@ class resRobotPosition( val owner: ActorBasic, name : String) : CoapResource( na
 	}
 	
 	fun dispatchToOwner(cmd: String){
+		println("dispatchToOwner | $cmd")
 		owner.scope.launch{ MsgUtil.sendMsg("$cmd","$cmd(X)",owner) }
 	}
 	

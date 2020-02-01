@@ -15,6 +15,10 @@ class Planner (room: Room) {
         var queue : MutableList<Node> = mutableListOf()
         var visited : MutableSet<Pair<Int, Int>> = mutableSetOf()
 		val start : Pair<Int, Int> = Pair(RobotState.x, RobotState.y)
+		
+		if (start == goal) {
+			return false
+		}
 
         fun isValidEntry(x:Int, y:Int) : Boolean {
             if (x < 0 || y < 0)

@@ -25,6 +25,19 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 					action { //it:State
 						println("robotmind | init")
 					}
+					 transition( edgeName="goto",targetState="activateResource", cond=doswitchGuarded({WithResource}) )
+					transition( edgeName="goto",targetState="idle", cond=doswitchGuarded({! WithResource}) )
+				}	 
+				state("activateResource") { //this:State
+					action { //it:State
+						println("detector | activateResource")
+						kotlincode.resServer.init(myself)
+						kotlincode.coapSupport.init( "coap://localhost:5683"  )
+						delay(1000) 
+						kotlincode.resourceObserver.init( "coap://localhost:5683", "robot/pos"  )
+						kotlincode.coapSupport.updateResource(myself ,"robot/box", "box(0)" )
+						kotlincode.coapSupport.updateResource(myself ,"robot/status", "status(active)" )
+					}
 					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
 				state("idle") { //this:State
@@ -36,6 +49,27 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 					transition(edgeName="tWork1",targetState="doStepWithAnswer",cond=whenRequest("step"))
 					transition(edgeName="tWork2",targetState="sHandleCmd",cond=whenDispatch("cmd"))
 					transition(edgeName="tWork3",targetState="sHandleStopUnexpected",cond=whenDispatch("stop"))
+					transition(edgeName="tWork4",targetState="handeExplore",cond=whenDispatch("explore"))
+					transition(edgeName="tWork5",targetState="handeSuspend",cond=whenDispatch("suspend"))
+					transition(edgeName="tWork6",targetState="handeTerminate",cond=whenDispatch("terminate"))
+				}	 
+				state("handeExplore") { //this:State
+					action { //it:State
+						forward("explore", "explore(X)" ,"detector" ) 
+					}
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
+				}	 
+				state("handeSuspend") { //this:State
+					action { //it:State
+						forward("suspend", "suspend(X)" ,"detector" ) 
+					}
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
+				}	 
+				state("handeTerminate") { //this:State
+					action { //it:State
+						forward("terminate", "terminate(X)" ,"detector" ) 
+					}
+					 transition( edgeName="goto",targetState="idle", cond=doswitch() )
 				}	 
 				state("sHandleStopUnexpected") { //this:State
 					action { //it:State
@@ -88,9 +122,9 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						stateTimer = TimerActor("timer_doStep", 
 							scope, context!!, "local_tout_robotmind_doStep", StepTime )
 					}
-					 transition(edgeName="t04",targetState="endStep",cond=whenTimeout("local_tout_robotmind_doStep"))   
-					transition(edgeName="t05",targetState="stepStop",cond=whenDispatch("stop"))
-					transition(edgeName="t06",targetState="stepFail",cond=whenEvent("obstacle"))
+					 transition(edgeName="t07",targetState="endStep",cond=whenTimeout("local_tout_robotmind_doStep"))   
+					transition(edgeName="t08",targetState="stepStop",cond=whenDispatch("stop"))
+					transition(edgeName="t09",targetState="stepFail",cond=whenEvent("obstacle"))
 				}	 
 				state("endStep") { //this:State
 					action { //it:State
@@ -136,7 +170,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						stateTimer = TimerActor("timer_revertStep", 
 							scope, context!!, "local_tout_robotmind_revertStep", Duration )
 					}
-					 transition(edgeName="trevert7",targetState="stopRevert",cond=whenTimeout("local_tout_robotmind_revertStep"))   
+					 transition(edgeName="trevert10",targetState="stopRevert",cond=whenTimeout("local_tout_robotmind_revertStep"))   
 				}	 
 				state("stopRevert") { //this:State
 					action { //it:State

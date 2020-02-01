@@ -18,7 +18,7 @@ var createServer = function (  port ) {
   server.on('listening', onListening);
   server.on('error', onError);
   
-  //setInterval( tick, 5000 );
+  setInterval( getAllCoapResources, 5000 );
   
   server.listen( port );
 
@@ -29,12 +29,9 @@ var createServer = function (  port ) {
 	});
 	appl.setIoSocket( io );
   };
-  
 
-function tick(){ 
-	var now = new Date().toString();
-	console.log("sending ... " + io);
-	io.sockets.send("HELLO FROM SERVER time=" + now);
+function getAllCoapResources() {
+	coap.getAll()
 }
 
 

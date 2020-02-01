@@ -81,7 +81,7 @@ app.get('/', function(req, res) {
  app.post("/obstacle", function(req, res,next) { handlePostEvent( "itsObstacle", req, res ,next)});	  
  app.post("/tvochigh", function(req, res,next) { handlePostEvent( "tvocHigh", req, res ,next)}); 
  app.post("/tvoclow", function(req, res,next) { handlePostEvent( "tvocLow", req, res ,next)}); 
- 
+
 
 function handlePostMove( cmd, msg, req, res, next ){
   result = "applCode | Web server done: " + cmd

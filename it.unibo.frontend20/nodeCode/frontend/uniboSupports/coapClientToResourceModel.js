@@ -6,6 +6,7 @@ const coap             = require("node-coap-client").CoapClient;
 //var coapAddr           = "coap://192.168.1.8:5683"	//RESOURCE ON RASPBERRY PI
 var coapAddr             = "coap://localhost:5683"
 var coapResourceAddr   	 = coapAddr + "/robot/pos"
+var robotPosAddr	   	 = coapAddr + "/robot/pos"
 var sensorResourceAddr   = coapAddr + "/robot/sonar"
 var robotStatusRes	     = coapAddr + "/robot/status"
 var environmentMapRes    = coapAddr + "/robot/map"
@@ -47,7 +48,7 @@ exports.setcoapAddr = function ( addr ){
 	//coapResourceAddr   = coapAddr + "/robot/pos" // coap://localhost:5683/robot/pos
 	coapResourceAddr = addr
 	console.log("coap | coapResourceAddr=" + coapResourceAddr);
-	createCoapClient(coapResourceAddr);
+	createCoapClient(robotPosAddr);
 	createCoapClient(sensorResourceAddr);
 	createCoapClient(robotStatusRes);
 	createCoapClient(robotBox);
@@ -55,17 +56,24 @@ exports.setcoapAddr = function ( addr ){
 	createCoapClient(plasticBoxContentRes);
 }
 
-exports.coapGet = function (  ){
+exports.getAll = function () {
+	exports.coapGet(robotPosAddr);
+	exports.coapGet(sensorResourceAddr);
+	exports.coapGet(robotStatusRes);
+	exports.coapGet(robotBox);
+	exports.coapGet(environmentMapRes);
+	exports.coapGet(plasticBoxContentRes);
+}
+
+exports.coapGet = function (addr){
 	coap
 	    .request(
-	         coapResourceAddr,
+	         addr,
 	        "get" /* "get" | "post" | "put" | "delete" */
  	        //[payload /* Buffer */,
 	        //[options /* RequestOptions */]]
 	    )
-	    .then(response => { 			/* handle response */
-	    	console.log("coap get done> " + response.payload );}
-	     )
+	    .then(handle.handeData)
 	    .catch(err => { /* handle error */ 
 	    	console.log("coap get error> " + err );}
 	    )
