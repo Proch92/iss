@@ -15,6 +15,7 @@ var io              ; 	//Upgrade for socketIo;
 const mqttUtils     = require('./uniboSupports/mqttUtils');  
 const qakevh       = require('./uniboSupports/qakeventHandler');  	//DEC 2019
 const coap          = require('./uniboSupports/coapClientToResourceModel');  
+const TCPvirtual    = require('./uniboSupports/TcpClientToVirtual');  
 
 var app              = express();
 
@@ -86,7 +87,10 @@ app.get('/', function(req, res) {
 
 function removeBottle(req, res, next) {
   bottlename = req.params.id
-  emitEventMqtt( "remove", bottlename );
+
+  TCPvirtual.sendMsg("remove("+bottlename+")")
+
+  //emitEventMqtt( "remove", bottlename );
   res.redirect('/')
   next()
 }

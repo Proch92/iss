@@ -50,6 +50,10 @@ object robotSupport{
 	}
 	
 	fun remove( bottleName : String ) {
-		if (robotKind == "virtual") {clientWenvObjTcp.sendMsg( bottleName )}
+		if (robotKind == "virtual") {
+			println( "		--- robotSupport | remove" )
+			println(bottleName)
+			clientWenvObjTcp.sendMsg( bottleName )
+		}
 	}
 }

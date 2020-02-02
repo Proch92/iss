@@ -42,6 +42,7 @@ class Robot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 				}	 
 				state("handeRemove") { //this:State
 					action { //it:State
+						println("hande remove")
 						if( checkMsgContent( Term.createTerm("remove(NAME)"), Term.createTerm("remove(NAME)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("remove", "remove(${payloadArg(0)})" ,"robotadapter" ) 

@@ -47,6 +47,8 @@ class robotAdapterQaStream( name : String ) : ActorBasic( name ){
 			val move = (Term.createTerm(msg.msgContent()) as Struct).getArg(0).toString()
 			itunibo.robot.robotSupport.move( move  )
 		} else if (msg.msgId() == "remove") {
+			println("	--- robotAdapterQaStream | remove")
+			println(msg.msgContent())
 			//val bottleName = (Term.createTerm(msg.msgContent()) as Struct).getArg(0).toString()
 			itunibo.robot.robotSupport.remove( msg.msgContent() )
 		}
