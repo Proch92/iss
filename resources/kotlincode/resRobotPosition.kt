@@ -38,6 +38,8 @@ class resRobotPosition( val owner: ActorBasic, name : String) : CoapResource( na
 			"p" ->  { moving = true;   stepTheOwner( )  }
 			"a" ->  { moving = false;  rotateLeft( )    }
 			"d" ->  { moving = false;  rotateRight()    }
+			"z" ->  { moving = false;  cmdToOwner("z")    }
+			"x" ->  { moving = false;  cmdToOwner("x")    }
 			"h" ->  { moving = false;  cmdToOwner("h")  }
 			"w" ->  { moving = true;   cmdToOwner("w")  }
 			"s" ->  { moving = true;   cmdToOwner("s")  }
@@ -62,7 +64,7 @@ class resRobotPosition( val owner: ActorBasic, name : String) : CoapResource( na
 		owner.scope.launch{ MsgUtil.sendMsg("cmd","cmd($msg)",owner) }
 	}
 	fun stepTheOwner( ){
-		val msg = MsgUtil.buildDispatch(owner.name,"step","step(370)",owner.name )
+		val msg = MsgUtil.buildDispatch(owner.name,"step","step(500)",owner.name )
 		owner.scope.launch{ MsgUtil.sendMsg(msg,owner) }
 		//The result of the move is given by the position of the robot
 	}

@@ -9,8 +9,8 @@ import numpy as np
 
 OBSTACLE_THRESHOLD = 5.5
 
-ctx = Context('ctx-raspberry', '192.168.1.119', 8030)
-ctx_mind = ExternalContext('ctx-mind', '192.168.1.7', 8020)
+ctx = Context('ctx-raspberry', '192.168.1.103', 8030)
+ctx_mind = ExternalContext('ctx-mind', '192.168.1.128', 8020)
 
 sonar = sensors.Sonar(17, 27)
 ctx.emitter('sonar', avg_window(clip(discard_malformed(sonar.stream()))), hertz=10, from_name='sonar')
@@ -48,14 +48,14 @@ async def handle_cmd(self, t):
         self.motordx.backward(power=65)
     elif cmd == 'a':
         steps = 10
-        max_pow_sx = 60
-        max_pow_dx = 70
-        for r in np.linspace(0.0, 1.0, num=steps):
+        max_pow_sx = 40
+        max_pow_dx = 50
+        for r in np.linspace(0.5, 1.0, num=steps):
             self.motorsx.backward(power=max_pow_sx * r)
             self.motordx.forward(power=max_pow_dx * r)
             await self.sleep(0.2 / steps)
         await self.sleep(0.2)
-        for r in np.linspace(1.0, 0.0, num=steps):
+        for r in np.linspace(1.0, 0.5, num=steps):
             self.motorsx.backward(power=max_pow_sx * r)
             self.motordx.forward(power=max_pow_dx * r)
             await self.sleep(0.2 / steps)
@@ -63,17 +63,29 @@ async def handle_cmd(self, t):
         self.motordx.stop()
     elif cmd == 'd':
         steps = 10
-        max_pow_sx = 60
-        max_pow_dx = 50
-        for r in np.linspace(0.0, 1.0, num=steps):
+        max_pow_sx = 50
+        max_pow_dx = 40
+        for r in np.linspace(0.5, 1.0, num=steps):
             self.motorsx.forward(power=max_pow_sx * r)
             self.motordx.backward(power=max_pow_dx * r)
             await self.sleep(0.2 / steps)
         await self.sleep(0.2)
-        for r in np.linspace(1.0, 0.0, num=steps):
+        for r in np.linspace(1.0, 0.5, num=steps):
             self.motorsx.forward(power=max_pow_sx * r)
             self.motordx.backward(power=max_pow_dx * r)
             await self.sleep(0.2 / steps)
+        self.motorsx.stop()
+        self.motordx.stop()
+    elif cmd == 'z':
+        self.motorsx.backward(power=50)
+        self.motordx.forward(power=55)
+        await self.sleep(0.1)
+        self.motorsx.stop()
+        self.motordx.stop()
+    elif cmd == 'x':
+        self.motordx.backward(power=50)
+        self.motorsx.forward(power=55)
+        await self.sleep(0.1)
         self.motorsx.stop()
         self.motordx.stop()
     elif cmd == 'h':
