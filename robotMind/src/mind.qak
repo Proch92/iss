@@ -14,6 +14,7 @@ Reply stepdone	: stepdone(V)
 Reply stepfail	: stepfail(DURATION, CAUSE)
 Event stepdone	: stepdone(V)
 Event stepfail	: stepfail(DURATION, CAUSE)
+Event turnDone  : turnDone(X)
 Dispatch stop	: stop(X)
 Dispatch cmd	: cmd(X)
 Dispatch suspend: suspend(X)
@@ -33,14 +34,14 @@ Event itsPlastic : itsPlastic(X)
 Event itsObstacle : itsObstacle(X)
 
 Context ctxMind			ip [ host= "192.168.1.128"	port= 8020 ] +mqtt
-Context ctxBasicRobot	ip [ host= "192.168.1.103"	port= 8030 ]
-//Context ctxBasicRobot	ip [ host= "127.0.0.1"	port= 8030 ] +mqtt
+//Context ctxBasicRobot	ip [ host= "192.168.1.103"	port= 8030 ]
+Context ctxBasicRobot	ip [ host= "127.0.0.1"	port= 8030 ] +mqtt
 
 ExternalQActor robot context ctxBasicRobot 
 
 QActor robotmind context ctxMind {
 	["
-	var StepTime = 500L 
+	var StepTime = 650L 
 	var Duration = 0L
 	var WithResource = true
 	var DoStepAnswer = false
@@ -105,6 +106,7 @@ QActor robotmind context ctxMind {
 			if "( WithResource )" {
 				run kotlincode.coapSupport.updateResource(myself, "robot/pos", "u$Move")
 			}
+			if "(Move == \"a\" || Move == \"d\")" {emit turnDone : turnDone(X)}
 		}
 	}
 	Goto idle
@@ -196,6 +198,7 @@ QActor detector context ctxMind {
 	var Goal : Pair<Int, Int> = Pair(0, 0)
 	var Suspended = false
 	var planexists = true
+	var planDone = false
 	"]
 	
 	State init initial {}
@@ -246,10 +249,9 @@ QActor detector context ctxMind {
 		["
 		Goal = Pair(0, 0)
 		planexists = planner.new_plan(Goal)
-		if (planexists) planner.executePlan(myself)
 		"]
 	}
-	Goto waitPlanCompletion if "(planexists)" else idle
+	Goto doPlan if "(planexists)" else idle
 	
 	State ssuspend {
 		println("detector | ssuspend")
@@ -270,14 +272,20 @@ QActor detector context ctxMind {
 		"]
 		if "(WithResource)" {run kotlincode.coapSupport.updateResource(myself, "robot/status", "status(active)")}
 	}
-	Goto waitPlanCompletion
+	Goto doPlan
 	
-	State waitPlanCompletion {
-		println("detector | waitPlanCompletion")
+	State doPlan {
+		println("detector | doPlan")
+		delay 1000
+		["
+		planDone = planner.isPlanDone()
+		if(!planDone) planner.executePlan(myself)
+		"]
 	}
 	Transition twait
 		whenEvent stepdone -> checkGoal
 		whenEvent stepfail -> askObstacle
+		whenEvent turnDone -> doPlan
 		whenMsg suspend	-> ssuspend
 		whenMsg terminate -> goHome
 	
@@ -291,7 +299,7 @@ QActor detector context ctxMind {
 		if (WithResource) room.coapPublish(myself)
 		"]
 	}
-	Goto goalAchieved if "(Pair(myai.RobotState.x, myai.RobotState.y) == Goal)" else waitPlanCompletion
+	Goto goalAchieved if "(Pair(myai.RobotState.x, myai.RobotState.y) == Goal)" else doPlan
 	
 	State goalAchieved {
 		println("detector | goalAchieved")
@@ -307,6 +315,7 @@ QActor detector context ctxMind {
 	
 	State askObstacle {
 		println("detector | askObstalce")
+		["planner.closePlan()"]
 		// ask if plastic bottle or obstacle
 	}
 	Transition task

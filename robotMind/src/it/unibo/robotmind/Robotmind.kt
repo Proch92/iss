@@ -16,7 +16,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-			var StepTime = 500L 
+			var StepTime = 650L 
 			var Duration = 0L
 			var WithResource = true
 			var DoStepAnswer = false
@@ -87,6 +87,8 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 											myai.RobotState.update(Move)
 								forward("cmd", "cmd($Move)" ,"robot" ) 
 								if(( WithResource )){ kotlincode.coapSupport.updateResource(myself ,"robot/pos", "u$Move" )
+								 }
+								if((Move == "a" || Move == "d")){ emit("turnDone", "turnDone(X)" ) 
 								 }
 						}
 					}

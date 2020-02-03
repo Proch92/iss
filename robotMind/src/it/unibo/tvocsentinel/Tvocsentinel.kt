@@ -24,8 +24,8 @@ class Tvocsentinel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 				state("idle") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t024",targetState="suspendRobot",cond=whenEvent("tvocHigh"))
-					transition(edgeName="t025",targetState="wakeupRobot",cond=whenEvent("tvocLow"))
+					 transition(edgeName="t025",targetState="suspendRobot",cond=whenEvent("tvocHigh"))
+					transition(edgeName="t026",targetState="wakeupRobot",cond=whenEvent("tvocLow"))
 				}	 
 				state("suspendRobot") { //this:State
 					action { //it:State

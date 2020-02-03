@@ -26,6 +26,7 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 			var Goal : Pair<Int, Int> = Pair(0, 0)
 			var Suspended = false
 			var planexists = true
+			var planDone = false
 		return { //this:ActionBasciFsm
 				state("init") { //this:State
 					action { //it:State
@@ -78,9 +79,8 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						
 								Goal = Pair(0, 0)
 								planexists = planner.new_plan(Goal)
-								if (planexists) planner.executePlan(myself)
 					}
-					 transition( edgeName="goto",targetState="waitPlanCompletion", cond=doswitchGuarded({(planexists)}) )
+					 transition( edgeName="goto",targetState="doPlan", cond=doswitchGuarded({(planexists)}) )
 					transition( edgeName="goto",targetState="idle", cond=doswitchGuarded({! (planexists)}) )
 				}	 
 				state("ssuspend") { //this:State
@@ -105,16 +105,21 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						if((WithResource)){ kotlincode.coapSupport.updateResource(myself ,"robot/status", "status(active)" )
 						 }
 					}
-					 transition( edgeName="goto",targetState="waitPlanCompletion", cond=doswitch() )
+					 transition( edgeName="goto",targetState="doPlan", cond=doswitch() )
 				}	 
-				state("waitPlanCompletion") { //this:State
+				state("doPlan") { //this:State
 					action { //it:State
-						println("detector | waitPlanCompletion")
+						println("detector | doPlan")
+						delay(1000) 
+						
+								planDone = planner.isPlanDone()
+								if(!planDone) planner.executePlan(myself)
 					}
 					 transition(edgeName="twait16",targetState="checkGoal",cond=whenEvent("stepdone"))
 					transition(edgeName="twait17",targetState="askObstacle",cond=whenEvent("stepfail"))
-					transition(edgeName="twait18",targetState="ssuspend",cond=whenDispatch("suspend"))
-					transition(edgeName="twait19",targetState="goHome",cond=whenDispatch("terminate"))
+					transition(edgeName="twait18",targetState="doPlan",cond=whenEvent("turnDone"))
+					transition(edgeName="twait19",targetState="ssuspend",cond=whenDispatch("suspend"))
+					transition(edgeName="twait20",targetState="goHome",cond=whenDispatch("terminate"))
 				}	 
 				state("checkGoal") { //this:State
 					action { //it:State
@@ -127,7 +132,7 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 								if (WithResource) room.coapPublish(myself)
 					}
 					 transition( edgeName="goto",targetState="goalAchieved", cond=doswitchGuarded({(Pair(myai.RobotState.x, myai.RobotState.y) == Goal)}) )
-					transition( edgeName="goto",targetState="waitPlanCompletion", cond=doswitchGuarded({! (Pair(myai.RobotState.x, myai.RobotState.y) == Goal)}) )
+					transition( edgeName="goto",targetState="doPlan", cond=doswitchGuarded({! (Pair(myai.RobotState.x, myai.RobotState.y) == Goal)}) )
 				}	 
 				state("goalAchieved") { //this:State
 					action { //it:State
@@ -144,11 +149,12 @@ class Detector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("askObstacle") { //this:State
 					action { //it:State
 						println("detector | askObstalce")
+						planner.closePlan()
 					}
-					 transition(edgeName="task20",targetState="plasticFound",cond=whenEvent("itsPlastic"))
-					transition(edgeName="task21",targetState="obstacleFound",cond=whenEvent("itsObstacle"))
-					transition(edgeName="task22",targetState="ssuspend",cond=whenDispatch("suspend"))
-					transition(edgeName="task23",targetState="goHome",cond=whenDispatch("terminate"))
+					 transition(edgeName="task21",targetState="plasticFound",cond=whenEvent("itsPlastic"))
+					transition(edgeName="task22",targetState="obstacleFound",cond=whenEvent("itsObstacle"))
+					transition(edgeName="task23",targetState="ssuspend",cond=whenDispatch("suspend"))
+					transition(edgeName="task24",targetState="goHome",cond=whenDispatch("terminate"))
 				}	 
 				state("plasticFound") { //this:State
 					action { //it:State

@@ -47,6 +47,7 @@ class Planner (room: Room) {
                 plan = plan.reversed().toMutableList()
                 
 				println("plan found")
+				
                 return true
             }
 
@@ -72,26 +73,25 @@ class Planner (room: Room) {
     }
 
     suspend fun executePlan(actor : ActorBasic) {
-    	while (!isPlanDone()) {
-			val nextc = nextCell()
-			var nextmove = move(nextc)
-			while (nextmove != "step") {
-				println(nextmove)
-				actor.forward("cmd", "cmd($nextmove)", "robotmind")
-				delay(5000)
-				nextmove = move(nextc)
-			}
-			actor.forward("step", "step(500)", "robotmind")
-			delay(750)
+		val nextc = plan[0]
+		var nextmove = move(nextc)
+		if (nextmove != "step") {
+			println(nextmove)
+			actor.forward("cmd", "cmd($nextmove)", "robotmind")
 		}
-		println("Planner | executePlan | plan execution done")
-    }
-
-    fun nextCell() : Pair<Int, Int> {
-        return plan.removeAt(0)
+		else {
+			println(nextmove)
+			actor.forward("step", "step(650)", "robotmind")
+			plan.removeAt(0)
+		}
     }
 	
 	fun isPlanDone() : Boolean {
+		if (plan.isEmpty()) println("Planner | isPlanDone | plan execution done")
 		return plan.isEmpty()
+	}
+	
+	fun closePlan() {
+		plan = mutableListOf()
 	}
 }
